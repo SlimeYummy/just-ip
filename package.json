@@ -1,0 +1,26 @@
+{
+  "name": "just-ip",
+  "version": "0.1.0",
+  "description": "An IP library for both browser and nodejs.",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NaNuNoo/just-ip.git"
+  },
+  "keywords": [
+    "IP",
+    "IP address",
+    "IP browser",
+    "network"
+  ],
+  "author": "NaNuNoo",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/NaNuNoo/just-ip/issues"
+  },
+  "homepage": "https://github.com/NaNuNoo/just-ip#readme"
+}
