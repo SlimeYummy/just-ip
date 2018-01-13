@@ -5,7 +5,8 @@
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "./node_modules/.bin/tsc",
+    "test": "./node_modules/.bin/mocha -r ./node_modules/ts-node/register test/*.ts"
   },
   "repository": {
     "type": "git",
@@ -22,5 +23,12 @@
   "bugs": {
     "url": "https://github.com/NaNuNoo/just-ip/issues"
   },
-  "homepage": "https://github.com/NaNuNoo/just-ip#readme"
+  "homepage": "https://github.com/NaNuNoo/just-ip#readme",
+  "devDependencies": {
+    "@types/mocha": "^2.2.46",
+    "@types/node": "^9.3.0",
+    "mocha": "^4.1.0",
+    "ts-node": "^4.1.0",
+    "typescript": "^2.6.2"
+  }
 }
