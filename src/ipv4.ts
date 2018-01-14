@@ -12,7 +12,7 @@ const RE_IPV4 = makeRegex(`^
 \\s*(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])
 \\s*$`);
 
-export default class IpV4 {
+export class IpV4 {
   private _b1: number = 0;
   private _b2: number = 0;
   private _b3: number = 0;

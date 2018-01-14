@@ -1,8 +1,7 @@
 import 'mocha';
-import { equal, deepEqual } from 'assert';
-import { he2be, he2le } from '../src/endian';
-import IpV4 from '../src/ipv4';
-import NetV4 from '../src/netv4';
+import { equal } from 'assert';
+import { IpV4 } from '../src/ipv4';
+import { NetV4 } from '../src/netv4';
 
 describe('netv4.js', () => {
   const ipAddr = IpV4.fromString('192.168.1.2');

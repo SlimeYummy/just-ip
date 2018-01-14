@@ -1,0 +1,30 @@
+import { IpV4 } from './ipv4';
+export declare class NetV4 {
+    private _base;
+    private _mask;
+    private _prefix;
+    static fromString(str: string): NetV4;
+    static fromStringPrefix(str: string): NetV4;
+    static fromStringMask(str: string): NetV4;
+    static fromStringRange(str: string): NetV4;
+    static fromIpPrefix(ip: IpV4, prefix: number): NetV4;
+    static fromIpMask(ip: IpV4, mask: IpV4): NetV4;
+    static fromIpRange(start: IpV4, finish: IpV4): NetV4;
+    toString(): string;
+    toStringPrefix(): string;
+    toStringMask(): string;
+    toStringRange(): string;
+    getPrefixLen(): number;
+    getMask(): IpV4;
+    getHostMask(): IpV4;
+    getBase(): IpV4;
+    getBroadcast(): IpV4;
+    forEachIP(func: (ip: IpV4) => void): void;
+    forEachInt(func: (int: number) => void): void;
+    forEachIntBe(func: (int: number) => void): void;
+    forEachIntLe(func: (int: number) => void): void;
+    isContainIP(ip: IpV4): boolean;
+    isContainNet(net: NetV4): boolean;
+    static equal(net1: NetV4, net2: NetV4): boolean;
+    equal(net: NetV4): boolean;
+}

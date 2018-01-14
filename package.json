@@ -5,7 +5,7 @@
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
-    "build": "./node_modules/.bin/tsc",
+    "build": "./node_modules/.bin/tsc && echo \"Build Just-IP success !\"",
     "test": "./node_modules/.bin/mocha -r ./node_modules/ts-node/register test/*.ts"
   },
   "repository": {

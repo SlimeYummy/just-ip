@@ -1,6 +1,6 @@
 import { NetV4Error, makeRegex } from './util';
 import { bs2he, he2bs, he2be, he2le } from './endian';
-import IpV4 from './ipv4';
+import { IpV4 } from './ipv4';
 
 // 192.168.0.0/24
 const RE_SUBNET_V4_BITS = makeRegex(`^
@@ -106,13 +106,13 @@ function ip2String(int: number): string {
   return `${bytes[0]}.${bytes[1]}.${bytes[2]}.${bytes[3]}`;
 }
 
-export default class NetV4 {
+export class NetV4 {
   private _base: number = 0;
   private _mask: number = 0;
   private _prefix: number = 0;
 
   public static fromString(str: string): NetV4 {
-    let match = null;
+    let match: RegExpExecArray | null = null;
     if (match = RE_SUBNET_V4_BITS.exec(str)) {
       const net = new NetV4();
       net._prefix = parseInt(match[5]);

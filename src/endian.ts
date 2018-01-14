@@ -41,7 +41,7 @@ export function be2bs(int: number): Uint8Array {
 
 export const he2bs = ENDIAN === 'le' ? le2bs : be2bs;
 
-function reverse(int: number): number {
+const reverse = (int: number): number => {
   intBuf_1[0] = int;
   byteBuf_2[0] = byteBuf_1[3];
   byteBuf_2[1] = byteBuf_1[2];
@@ -50,7 +50,7 @@ function reverse(int: number): number {
   return intBuf_2[0];
 }
 
-function keep(int: number): number {
+const keep = (int: number): number => {
   return int;
 }
 

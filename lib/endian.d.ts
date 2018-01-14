@@ -1,0 +1,13 @@
+export declare const ENDIAN: string;
+export declare function bs2le(b1: number, b2: number, b3: number, b4: number): number;
+export declare function bs2be(b1: number, b2: number, b3: number, b4: number): number;
+export declare const bs2he: typeof bs2le;
+export declare function le2bs(int: number): Uint8Array;
+export declare function be2bs(int: number): Uint8Array;
+export declare const he2bs: typeof le2bs;
+export declare const le2be: (int: number) => number;
+export declare const le2he: (int: number) => number;
+export declare const be2le: (int: number) => number;
+export declare const be2he: (int: number) => number;
+export declare const he2le: (int: number) => number;
+export declare const he2be: (int: number) => number;
