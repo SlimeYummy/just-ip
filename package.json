@@ -4,10 +4,6 @@
   "description": "An IP library for both browser and nodejs.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
-  "scripts": {
-    "build": "./node_modules/.bin/tsc && echo \"Build Just-IP success !\"",
-    "test": "./node_modules/.bin/mocha -r ./node_modules/ts-node/register test/*.ts"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NaNuNoo/just-ip.git"
@@ -25,10 +21,30 @@
   },
   "homepage": "https://github.com/NaNuNoo/just-ip#readme",
   "devDependencies": {
-    "@types/mocha": "^2.2.46",
+    "@types/jest": "^22.0.1",
     "@types/node": "^9.3.0",
-    "mocha": "^4.1.0",
+    "jest": "^22.0.6",
+    "ts-jest": "^22.0.1",
     "ts-node": "^4.1.0",
     "typescript": "^2.6.2"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "mapCoverage": true
+  },
+  "scripts": {
+    "build": "./node_modules/.bin/tsc && echo \"Build Just-IP success !\"",
+    "test": "./node_modules/.bin/jest --coverage"
   }
 }
