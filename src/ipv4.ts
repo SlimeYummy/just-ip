@@ -34,10 +34,10 @@ export class IpV4 {
   }
 
   public static fromInt(int: number): IpV4 {
-    int = int >>> 0;
-    if (int < 0 || 0xFFFFFFFF < int) {
+    if (int < -0x80000000 || 0xFFFFFFFF < int) {
       throw new IPV4Error();
     }
+    int = int >>> 0;
     const ip = new IpV4();
     const bytes = he2bs(int);
     ip._b1 = bytes[0];
@@ -49,10 +49,10 @@ export class IpV4 {
   }
 
   public static fromIntBe(int: number): IpV4 {
-    int = int >>> 0;
-    if (int < 0 || 0xFFFFFFFF < int) {
+    if (int < -0x80000000 || 0xFFFFFFFF < int) {
       throw new IPV4Error();
     }
+    int = int >>> 0;
     const ip = new IpV4();
     const bytes = be2bs(int);
     ip._b1 = bytes[0];
@@ -64,16 +64,16 @@ export class IpV4 {
   }
 
   public static fromIntLe(int: number): IpV4 {
-    int = int >>> 0;
-    if (int < 0 || 0xFFFFFFFF < int) {
+    if (int < -0x80000000 || 0xFFFFFFFF < int) {
       throw new IPV4Error();
     }
+    int = int >>> 0;
     const ip = new IpV4();
     const bytes = le2bs(int);
-    ip._b1 = bytes[3];
-    ip._b2 = bytes[2];
-    ip._b3 = bytes[1];
-    ip._b4 = bytes[0];
+    ip._b1 = bytes[0];
+    ip._b2 = bytes[1];
+    ip._b3 = bytes[2];
+    ip._b4 = bytes[3];
     ip._int = le2he(int);
     return ip;
   }
@@ -126,5 +126,46 @@ export class IpV4 {
 
   public equal(ip: IpV4): boolean {
     return this._int === ip._int;
+  }
+
+  public isUnspecified(): boolean {
+    return this._int === 0;
+  }
+
+  public isLoopback(): boolean {
+    return 0x7F000000 <= this._int && this._int <= 0x7F0000FF;
+  }
+
+  public isPrivate(): boolean {
+    return (0x0A000000 <= this._int && this._int <= 0x0AFFFFFF) ||
+      (0xAC100000 <= this._int && this._int <= 0xAC100FFF) ||
+      (0xC0A80000 <= this._int && this._int <= 0xC0A800FF);
+  }
+
+  public isLinkLocal(): boolean {
+    return 0xA9FE0000 <= this._int && this._int <= 0xA9FEFFFF;
+  }
+
+  public isMulticast(): boolean {
+    return 0xE0000000 <= this._int && this._int <= 0xEFFFFFFF;
+  }
+
+  public isBroadcast(): boolean {
+    return this._int === 0xFFFFFFFF;
+  }
+
+  public isDocumentation(): boolean {
+    return (0xC0000200 <= this._int && this._int <= 0xC00002FF) ||
+      (0xC6336400 <= this._int && this._int <= 0xC63364FF) ||
+      (0xCB007100 <= this._int && this._int <= 0xCB0071FF);
+  }
+
+  public isGlobal(): boolean {
+    return !this.isPrivate() &&
+      !this.isLoopback() &&
+      !this.isLinkLocal() &&
+      !this.isBroadcast() &&
+      !this.isDocumentation() &&
+      !this.isUnspecified();
   }
 }
