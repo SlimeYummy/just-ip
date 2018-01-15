@@ -75,12 +75,18 @@ function maskFromString(s1: string, s2: string, s3: string, s4: string): number 
 }
 
 function prefix2Mask(prefix: number): number {
+  if (prefix === 0) {
+    return 0;
+  }
   const suffix = 32 - prefix;
   const hostMask = ((1 << suffix) >>> 0) - 1;
   return 0xFFFFFFFF - hostMask;
 }
 
 function mask2Prefix(mask: number): number {
+  if (mask === 0) {
+    return 0;
+  }
   let count = 0;
   const hostMask = 0xFFFFFFFF - mask;
   while (hostMask >>> count > 0) {
@@ -117,14 +123,14 @@ export class NetV4 {
       const net = new NetV4();
       net._prefix = parseInt(match[5]);
       net._mask = prefix2Mask(net._prefix);
-      net._base = net._mask & ipFromString(match[1], match[2], match[3], match[4]);
+      net._base = (net._mask & ipFromString(match[1], match[2], match[3], match[4])) >>> 0;
       return net;
 
     } else if (match = RE_SUBNET_V4_MASK.exec(str)) {
       const net = new NetV4();
       net._mask = maskFromString(match[5], match[6], match[7], match[8]);
       net._prefix = mask2Prefix(net._mask);
-      net._base = net._mask & ipFromString(match[1], match[2], match[3], match[4]);
+      net._base = (net._mask & ipFromString(match[1], match[2], match[3], match[4])) >>> 0;
       return net;
 
     } else if (match = RE_SUBNET_V4_RANGE.exec(str)) {
@@ -133,7 +139,7 @@ export class NetV4 {
       const finish = ipFromString(match[5], match[6], match[7], match[8]);
       net._mask = range2Mask(start, finish);
       net._prefix = mask2Prefix(net._mask);
-      net._base = net._mask & start;
+      net._base = (net._mask & start) >>> 0;
       return net;
 
     } else {
@@ -149,7 +155,7 @@ export class NetV4 {
     const net = new NetV4();
     net._prefix = parseInt(match[5]);
     net._mask = prefix2Mask(net._prefix);
-    net._base = net._mask & ipFromString(match[1], match[2], match[3], match[4]);
+    net._base = (net._mask & ipFromString(match[1], match[2], match[3], match[4])) >>> 0;
     return net;
   }
 
@@ -161,7 +167,7 @@ export class NetV4 {
     const net = new NetV4();
     net._mask = maskFromString(match[5], match[6], match[7], match[8]);
     net._prefix = mask2Prefix(net._mask);
-    net._base = net._mask & ipFromString(match[1], match[2], match[3], match[4]);
+    net._base = (net._mask & ipFromString(match[1], match[2], match[3], match[4])) >>> 0;
     return net;
   }
 
@@ -175,7 +181,7 @@ export class NetV4 {
     const finish = ipFromString(match[5], match[6], match[7], match[8]);
     net._mask = range2Mask(start, finish);
     net._prefix = mask2Prefix(net._mask);
-    net._base = start & net._mask;
+    net._base = (start & net._mask) >>> 0;
     return net;
   }
 
@@ -186,7 +192,7 @@ export class NetV4 {
     const net = new NetV4();
     net._prefix = prefix;
     net._mask = prefix2Mask(net._prefix);
-    net._base = ip.toInt() & net._mask;
+    net._base = (ip.toInt() & net._mask) >>> 0;
     return net;
   }
 
@@ -198,7 +204,7 @@ export class NetV4 {
     const net = new NetV4();
     net._mask = mask.toInt();
     net._prefix = mask2Prefix(net._mask);
-    net._base = ip.toInt() & net._mask;
+    net._base = (ip.toInt() & net._mask) >>> 0;
     return net;
   }
 
@@ -206,7 +212,7 @@ export class NetV4 {
     const net = new NetV4();
     net._mask = range2Mask(start.toInt(), finish.toInt());
     net._prefix = mask2Prefix(net._mask);
-    net._base = start.toInt() & net._mask;
+    net._base = (start.toInt() & net._mask) >>> 0;
     return net;
   }
 
@@ -230,20 +236,73 @@ export class NetV4 {
     return this._prefix;
   }
 
+  public getSize(): number {
+    return 1 << (32 - this._prefix);
+  }
+
   public getMask(): IpV4 {
     return IpV4.fromInt(this._mask);
+  }
+
+  public getMaskInt(): number {
+    return this._mask;
   }
 
   public getHostMask(): IpV4 {
     return IpV4.fromInt(0xFFFFFFFF - this._mask);
   }
 
+  public getHostMaskInt(): number {
+    return 0xFFFFFFFF - this._mask;
+  }
+
+  public getStart(): IpV4 {
+    return IpV4.fromInt(this._base);
+  }
+
+  public getStartInt(): number {
+    return this._base;
+  }
+
+  public getFinish(): IpV4 {
+    return IpV4.fromInt(this._base + (0xFFFFFFFF - this._mask));
+  }
+
+  public getFinishInt(): number {
+    return this._base + (0xFFFFFFFF - this._mask);
+  }
+
   public getBase(): IpV4 {
     return IpV4.fromInt(this._base);
   }
 
+  public getBaseInt(): number {
+    return this._base;
+  }
+
   public getBroadcast(): IpV4 {
     return IpV4.fromInt(this._base + (0xFFFFFFFF - this._mask));
+  }
+
+  public getBroadcastInt(): number {
+    return this._base + (0xFFFFFFFF - this._mask);
+  }
+
+  public isContainIP(ip: IpV4): boolean {
+    return (ip.toInt() & this._mask) === this._base;
+  }
+
+  public isContainNet(net: NetV4): boolean {
+    return (this._prefix <= net._prefix) &&
+      (net._base & this._mask) >>> 0 === this._base;
+  }
+
+  public static equal(net1: NetV4, net2: NetV4): boolean {
+    return net1._base === net2._base && net1._prefix === net2._prefix;
+  }
+
+  public equal(net: NetV4): boolean {
+    return this._base === net._base && this._prefix === net._prefix;
   }
 
   public forEachIP(func: (ip: IpV4) => void): void {
@@ -260,37 +319,5 @@ export class NetV4 {
     for (let iter = start; iter <= finish; iter += 1) {
       func(iter);
     }
-  }
-
-  public forEachIntBe(func: (int: number) => void): void {
-    const start = this._base;
-    const finish = this._base + (0xFFFFFFFF - this._mask);
-    for (let iter = start; iter <= finish; iter += 1) {
-      func(he2be(iter));
-    }
-  }
-
-  public forEachIntLe(func: (int: number) => void): void {
-    const start = this._base;
-    const finish = this._base + (0xFFFFFFFF - this._mask);
-    for (let iter = start; iter <= finish; iter += 1) {
-      func(he2le(iter));
-    }
-  }
-
-  public isContainIP(ip: IpV4): boolean {
-    return (ip.toInt() & this._mask) === this._base;
-  }
-
-  public isContainNet(net: NetV4): boolean {
-    return (this._prefix >= net._prefix) && (net._base & this._mask) === this._base;
-  }
-
-  public static equal(net1: NetV4, net2: NetV4): boolean {
-    return net1._base === net2._base && net1._prefix === net2._prefix;
-  }
-
-  public equal(net: NetV4): boolean {
-    return this._base === net._base && this._prefix === net._prefix;
   }
 }
