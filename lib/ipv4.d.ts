@@ -17,4 +17,12 @@ export declare class IpV4 {
     toArray(): Array<number>;
     static equal(ip1: IpV4, ip2: IpV4): boolean;
     equal(ip: IpV4): boolean;
+    isUnspecified(): boolean;
+    isLoopback(): boolean;
+    isPrivate(): boolean;
+    isLinkLocal(): boolean;
+    isMulticast(): boolean;
+    isBroadcast(): boolean;
+    isDocumentation(): boolean;
+    isGlobal(): boolean;
 }

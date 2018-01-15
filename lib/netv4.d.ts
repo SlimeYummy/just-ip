@@ -15,16 +15,23 @@ export declare class NetV4 {
     toStringMask(): string;
     toStringRange(): string;
     getPrefixLen(): number;
+    getSize(): number;
     getMask(): IpV4;
+    getMaskInt(): number;
     getHostMask(): IpV4;
+    getHostMaskInt(): number;
+    getStart(): IpV4;
+    getStartInt(): number;
+    getFinish(): IpV4;
+    getFinishInt(): number;
     getBase(): IpV4;
+    getBaseInt(): number;
     getBroadcast(): IpV4;
-    forEachIP(func: (ip: IpV4) => void): void;
-    forEachInt(func: (int: number) => void): void;
-    forEachIntBe(func: (int: number) => void): void;
-    forEachIntLe(func: (int: number) => void): void;
+    getBroadcastInt(): number;
     isContainIP(ip: IpV4): boolean;
     isContainNet(net: NetV4): boolean;
     static equal(net1: NetV4, net2: NetV4): boolean;
     equal(net: NetV4): boolean;
+    forEachIP(func: (ip: IpV4) => void): void;
+    forEachInt(func: (int: number) => void): void;
 }
