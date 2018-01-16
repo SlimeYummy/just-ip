@@ -106,10 +106,10 @@ test('IpV4::isPrivate()', () => {
   equal(true, IpV4.fromString('10.255.255.255').isPrivate());
   equal(false, IpV4.fromString('100.0.0.0').isPrivate());
   equal(true, IpV4.fromString('172.16.0.0').isPrivate());
-  equal(true, IpV4.fromString('172.16.15.255').isPrivate());
-  equal(false, IpV4.fromString('172.16.16.0').isPrivate());
+  equal(true, IpV4.fromString('172.31.255.255').isPrivate());
+  equal(false, IpV4.fromString('172.32.0.0').isPrivate());
   equal(true, IpV4.fromString('192.168.0.0').isPrivate());
-  equal(true, IpV4.fromString('192.168.0.255').isPrivate());
+  equal(true, IpV4.fromString('192.168.255.255').isPrivate());
   equal(false, IpV4.fromString('244.168.0.128').isPrivate());
 });
 

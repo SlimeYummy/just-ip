@@ -133,21 +133,21 @@ export class IpV4 {
   }
 
   public isLoopback(): boolean {
-    return 0x7F000000 <= this._int && this._int <= 0x7F0000FF;
+    return (this._int >>> 8) === 0x7F0000;
   }
 
   public isPrivate(): boolean {
-    return (0x0A000000 <= this._int && this._int <= 0x0AFFFFFF) ||
-      (0xAC100000 <= this._int && this._int <= 0xAC100FFF) ||
-      (0xC0A80000 <= this._int && this._int <= 0xC0A800FF);
+    return (this._int >>> 24) === 0x0A ||
+    (this._int >>> 20) === 0xAC1 ||
+    (this._int >>> 16) === 0xC0A8;
   }
 
   public isLinkLocal(): boolean {
-    return 0xA9FE0000 <= this._int && this._int <= 0xA9FEFFFF;
+    return (this._int >>> 16) === 0xA9FE;
   }
 
   public isMulticast(): boolean {
-    return 0xE0000000 <= this._int && this._int <= 0xEFFFFFFF;
+    return (this._int >>> 28) === 0xE;
   }
 
   public isBroadcast(): boolean {
@@ -155,9 +155,9 @@ export class IpV4 {
   }
 
   public isDocumentation(): boolean {
-    return (0xC0000200 <= this._int && this._int <= 0xC00002FF) ||
-      (0xC6336400 <= this._int && this._int <= 0xC63364FF) ||
-      (0xCB007100 <= this._int && this._int <= 0xCB0071FF);
+    return (this._int >>> 8) === 0xC00002 ||
+    (this._int >>> 8) === 0xC63364 ||
+    (this._int >>> 8) === 0xCB0071;
   }
 
   public isGlobal(): boolean {
