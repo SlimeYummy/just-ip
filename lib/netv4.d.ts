@@ -34,4 +34,12 @@ export declare class NetV4 {
     equal(net: NetV4): boolean;
     forEachIP(func: (ip: IpV4) => void): void;
     forEachInt(func: (int: number) => void): void;
+    isUnspecified(): boolean;
+    isLoopback(): boolean;
+    isPrivate(): boolean;
+    isLinkLocal(): boolean;
+    isMulticast(): boolean;
+    isBroadcast(): boolean;
+    isDocumentation(): boolean;
+    isGlobal(): boolean;
 }

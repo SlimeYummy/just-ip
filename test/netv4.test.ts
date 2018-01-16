@@ -232,3 +232,71 @@ test('NetV4::forEachInt()', () => {
     equal(iterIp, counter++);
   });
 });
+
+test('NetV4::isUnspecified()', () => {
+  equal(true, NetV4.fromString('0.0.0.0/32').isUnspecified());
+  equal(false, NetV4.fromString('1.1.1.1/32').isUnspecified());
+});
+
+test('NetV4::isLoopback()', () => {
+  equal(true, NetV4.fromString('127.0.0.111/25').isLoopback());
+  equal(true, NetV4.fromString('127.0.0.111/24').isLoopback());
+  equal(false, NetV4.fromString('127.0.0.111/23').isLoopback());
+});
+
+test('NetV4::isPrivate()', () => {
+  equal(true, NetV4.fromString('10.0.0.111/9').isPrivate());
+  equal(true, NetV4.fromString('10.0.0.111/8').isPrivate());
+  equal(false, NetV4.fromString('10.0.0.111/7').isPrivate());
+  equal(true, NetV4.fromString('172.16.0.111/13').isPrivate());
+  equal(true, NetV4.fromString('172.16.0.111/12').isPrivate());
+  equal(false, NetV4.fromString('172.16.0.111/11').isPrivate());
+  equal(true, NetV4.fromString('192.168.0.111/17').isPrivate());
+  equal(true, NetV4.fromString('192.168.0.111/16').isPrivate());
+  equal(false, NetV4.fromString('192.168.0.111/15').isPrivate());
+});
+
+test('NetV4::isLinkLocal()', () => {
+  equal(true, NetV4.fromString('169.254.0.111/17').isLinkLocal());
+  equal(true, NetV4.fromString('169.254.0.111/16').isLinkLocal());
+  equal(false, NetV4.fromString('169.254.0.111/15').isLinkLocal());
+});
+
+test('NetV4::isMulticast()', () => {
+  equal(true, NetV4.fromString('224.0.0.111/5').isMulticast());
+  equal(true, NetV4.fromString('224.0.0.111/4').isMulticast());
+  equal(false, NetV4.fromString('224.0.0.111/3').isMulticast());
+});
+
+test('NetV4::isBroadcast()', () => {
+  equal(true, NetV4.fromString('255.255.255.255/32').isBroadcast());
+  equal(false, NetV4.fromString('1.1.1.1/32').isBroadcast());
+});
+
+test('NetV4::isDocumentation()', () => {
+  equal(true, NetV4.fromString('192.0.2.111/25').isDocumentation());
+  equal(true, NetV4.fromString('192.0.2.111/24').isDocumentation());
+  equal(false, NetV4.fromString('192.0.2.111/23').isDocumentation());
+  equal(true, NetV4.fromString('198.51.100.111/25').isDocumentation());
+  equal(true, NetV4.fromString('198.51.100.111/24').isDocumentation());
+  equal(false, NetV4.fromString('198.51.100.111/23').isDocumentation());
+  equal(true, NetV4.fromString('203.0.113.111/25').isDocumentation());
+  equal(true, NetV4.fromString('203.0.113.111/24').isDocumentation());
+  equal(false, NetV4.fromString('203.0.113.111/23').isDocumentation());
+});
+
+test('NetV4::isGlobal()', () => {
+  equal(false, NetV4.fromString('0.0.0.0/32').isGlobal());
+  equal(false, NetV4.fromString('10.0.0.0/8').isGlobal());
+  equal(false, NetV4.fromString('127.0.0.0/24').isGlobal());
+  equal(false, NetV4.fromString('169.254.0.0/16').isGlobal());
+  equal(false, NetV4.fromString('172.16.0.0/12').isGlobal());
+  equal(false, NetV4.fromString('192.168.0.0/16').isGlobal());
+  equal(false, NetV4.fromString('192.0.2.0/24').isGlobal());
+  equal(false, NetV4.fromString('198.51.100.0/24').isGlobal());
+  equal(false, NetV4.fromString('203.0.113.0/24').isGlobal());
+  equal(false, NetV4.fromString('255.255.255.255/32').isGlobal());
+  equal(true, NetV4.fromString('113.0.0.113/31').isGlobal());
+  equal(true, NetV4.fromString('23.23.23.23/16').isGlobal());
+  equal(true, NetV4.fromString('209.3.177.59/8').isGlobal());
+});

@@ -1,6 +1,6 @@
 {
   "name": "just-ip",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "An IP library for both browser and nodejs.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",

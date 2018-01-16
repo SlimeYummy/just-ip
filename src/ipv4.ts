@@ -138,8 +138,8 @@ export class IpV4 {
 
   public isPrivate(): boolean {
     return (this._int >>> 24) === 0x0A ||
-    (this._int >>> 20) === 0xAC1 ||
-    (this._int >>> 16) === 0xC0A8;
+      (this._int >>> 20) === 0xAC1 ||
+      (this._int >>> 16) === 0xC0A8;
   }
 
   public isLinkLocal(): boolean {
@@ -156,8 +156,8 @@ export class IpV4 {
 
   public isDocumentation(): boolean {
     return (this._int >>> 8) === 0xC00002 ||
-    (this._int >>> 8) === 0xC63364 ||
-    (this._int >>> 8) === 0xCB0071;
+      (this._int >>> 8) === 0xC63364 ||
+      (this._int >>> 8) === 0xCB0071;
   }
 
   public isGlobal(): boolean {

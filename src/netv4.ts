@@ -320,4 +320,45 @@ export class NetV4 {
       func(iter);
     }
   }
+
+  public isUnspecified(): boolean {
+    return this._base === 0 && this._prefix === 32;
+  }
+
+  public isLoopback(): boolean {
+    return (this._base >>> 8) === 0x7F0000 && this._prefix >= 24;
+  }
+
+  public isPrivate(): boolean {
+    return (this._base >>> 24) === 0x0A && this._prefix >= 8 ||
+      (this._base >>> 20) === 0xAC1 && this._prefix >= 12 ||
+      (this._base >>> 16) === 0xC0A8 && this._prefix >= 16;
+  }
+
+  public isLinkLocal(): boolean {
+    return (this._base >>> 16) === 0xA9FE && this._prefix >= 16;
+  }
+
+  public isMulticast(): boolean {
+    return (this._base >>> 28) === 0xE && this._prefix >= 4;
+  }
+
+  public isBroadcast(): boolean {
+    return this._base === 0xFFFFFFFF && this._prefix === 32;
+  }
+
+  public isDocumentation(): boolean {
+    return (this._base >>> 8) === 0xC00002 && this._prefix >= 24 ||
+      (this._base >>> 8) === 0xC63364 && this._prefix >= 24 ||
+      (this._base >>> 8) === 0xCB0071 && this._prefix >= 24;
+  }
+
+  public isGlobal(): boolean {
+    return !this.isPrivate() &&
+      !this.isLoopback() &&
+      !this.isLinkLocal() &&
+      !this.isBroadcast() &&
+      !this.isDocumentation() &&
+      !this.isUnspecified();
+  }
 }
