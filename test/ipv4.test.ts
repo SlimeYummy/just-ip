@@ -21,9 +21,19 @@ test('IpV4.fromString()', () => {
   throws(() => { IpV4.fromString('1.1.1.1.0') });
 });
 
+test('IpV4.tryFromString()', () => {
+  deepEqual(IpV4.tryFromString(ipString), mockIp);
+  deepEqual(IpV4.tryFromString('1.1.1.1.0'), null);
+});
+
 test('IpV4.fromInt()', () => {
   deepEqual(IpV4.fromInt(ipIntHe), mockIp);
   throws(() => { IpV4.fromInt(-0x80000001) });
+});
+
+test('IpV4.tryFromInt()', () => {
+  deepEqual(IpV4.tryFromInt(ipIntHe), mockIp);
+  deepEqual(IpV4.tryFromInt(-0x80000001), null);;
 });
 
 test('IpV4.fromIntBe()', () => {
@@ -31,9 +41,19 @@ test('IpV4.fromIntBe()', () => {
   throws(() => { IpV4.fromIntBe(0x100000000) });
 });
 
+test('IpV4.tryFromIntBe()', () => {
+  deepEqual(IpV4.tryFromIntBe(ipIntBe), mockIp);
+  deepEqual(IpV4.tryFromIntBe(0x100000000), null);;
+});
+
 test('IpV4.fromIntLe()', () => {
   deepEqual(IpV4.fromIntLe(ipIntLe), mockIp);
   throws(() => { IpV4.fromIntLe(0x100000000) });
+});
+
+test('IpV4.tryFromIntLe()', () => {
+  deepEqual(IpV4.tryFromIntLe(ipIntLe), mockIp);
+  deepEqual(IpV4.tryFromIntLe(0x100000000), null);;
 });
 
 test('IpV4.fromBytes()', () => {
@@ -42,10 +62,22 @@ test('IpV4.fromBytes()', () => {
   throws(() => { IpV4.fromBytes(192, 168, 1, -1) });
 });
 
+test('IpV4.tryFromBytes()', () => {
+  deepEqual(IpV4.tryFromBytes(192, 168, 1, 2), mockIp);
+  deepEqual(IpV4.tryFromBytes(192, 168, 1, 256), null);
+  deepEqual(IpV4.tryFromBytes(192, 168, 1, -1), null);
+});
+
 test('IpV4.fromArray()', () => {
   deepEqual(IpV4.fromArray(ipArray), mockIp);
   throws(() => { IpV4.fromArray([192, 168, 1, 256]) });
   throws(() => { IpV4.fromArray([192, 168, 1, -1]) });
+});
+
+test('IpV4.tryFromArray()', () => {
+  deepEqual(IpV4.tryFromArray(ipArray), mockIp);
+  deepEqual(IpV4.tryFromArray([192, 168, 1, 256]), null);
+  deepEqual(IpV4.tryFromArray([192, 168, 1, -1]), null);
 });
 
 test('IpV4::toString()', () => {
@@ -78,14 +110,17 @@ test('IpV4::toArray()', () => {
   deepEqual(IpV4.fromIntLe(ipIntLe).toArray(), ipArray);
 });
 
-test('IpV4.equal()', () => {
-  equal(true, IpV4.equal(IpV4.fromInt(0x00000000), IpV4.fromInt(0x00000000)));
-  equal(false, IpV4.equal(IpV4.fromInt(0x0000FFFF), IpV4.fromInt(0xFFFF0000)));
-});
-
 test('IpV4::equal()', () => {
   equal(true, IpV4.fromInt(0xAABBCCDD).equal(IpV4.fromInt(0xAABBCCDD)));
   equal(false, IpV4.fromInt(0x44332211).equal(IpV4.fromInt(0x11223344)));
+});
+
+test('IpV4.equal()', () => {
+  equal(true, IpV4.equal('0.0.0.0', 0x00000000));
+  equal(true, IpV4.equal('0.0.0.0', '0.0.0.0'));
+  equal(true, IpV4.equal('0.0.0.0', [0, 0, 0, 0]));
+  equal(true, IpV4.equal('0.0.0.0', IpV4.fromString('0.0.0.0')));
+  throws(() => IpV4.equal(<any>{}, IpV4.fromString('0.0.0.0')));
 });
 
 test('IpV4::isUnspecified()', () => {
@@ -93,11 +128,27 @@ test('IpV4::isUnspecified()', () => {
   equal(false, IpV4.fromString('255.255.255.255').isUnspecified());
 });
 
+test('IpV4.isUnspecified()', () => {
+  equal(false, IpV4.isUnspecified(0x11223344));
+  equal(true, IpV4.isUnspecified('0.0.0.0'));
+  equal(true, IpV4.isUnspecified([0, 0, 0, 0]));
+  equal(true, IpV4.isUnspecified(IpV4.fromString('0.0.0.0')));
+  throws(() => IpV4.isUnspecified(<any>{}));
+});
+
 test('IpV4::isLoopback()', () => {
   equal(false, IpV4.fromString('126.0.0.0').isLoopback());
-  equal(true, IpV4.fromString('127.0.0.255').isLoopback());
   equal(true, IpV4.fromString('127.0.0.0').isLoopback());
+  equal(true, IpV4.fromString('127.0.0.255').isLoopback());
   equal(false, IpV4.fromString('127.0.1.0').isLoopback());
+});
+
+test('IpV4.isLoopback()', () => {
+  equal(false, IpV4.isLoopback(0x00000000));
+  equal(true, IpV4.isLoopback('127.0.0.0'));
+  equal(true, IpV4.isLoopback([127, 0, 0, 0]));
+  equal(true, IpV4.isLoopback(IpV4.fromString('127.0.0.0')));
+  throws(() => IpV4.isLoopback(<any>{}));
 });
 
 test('IpV4::isPrivate()', () => {
@@ -113,11 +164,27 @@ test('IpV4::isPrivate()', () => {
   equal(false, IpV4.fromString('244.168.0.128').isPrivate());
 });
 
+test('IpV4.isPrivate()', () => {
+  equal(false, IpV4.isPrivate(0x00000000));
+  equal(true, IpV4.isPrivate('10.0.0.0'));
+  equal(true, IpV4.isPrivate([10, 0, 0, 0]));
+  equal(true, IpV4.isPrivate(IpV4.fromString('10.0.0.0')));
+  throws(() => IpV4.isPrivate(<any>{}));
+});
+
 test('IpV4::isLinkLocal()', () => {
   equal(false, IpV4.fromString('127.0.0.255').isLinkLocal());
   equal(true, IpV4.fromString('169.254.0.0').isLinkLocal());
   equal(true, IpV4.fromString('169.254.255.255').isLinkLocal());
   equal(false, IpV4.fromString('170.0.0.0').isLinkLocal());
+});
+
+test('IpV4.isLinkLocal()', () => {
+  equal(false, IpV4.isLinkLocal(0x00000000));
+  equal(true, IpV4.isLinkLocal('169.254.0.0'));
+  equal(true, IpV4.isLinkLocal([169, 254, 0, 0]));
+  equal(true, IpV4.isLinkLocal(IpV4.fromString('169.254.0.0')));
+  throws(() => IpV4.isLinkLocal(<any>{}));
 });
 
 test('IpV4::isMulticast()', () => {
@@ -127,9 +194,25 @@ test('IpV4::isMulticast()', () => {
   equal(false, IpV4.fromString('255.255.255.255').isMulticast());
 });
 
+test('IpV4.isMulticast()', () => {
+  equal(false, IpV4.isMulticast(0x00000000));
+  equal(true, IpV4.isMulticast('224.0.0.0'));
+  equal(true, IpV4.isMulticast([224, 0, 0, 0]));
+  equal(true, IpV4.isMulticast(IpV4.fromString('224.0.0.0')));
+  throws(() => IpV4.isMulticast(<any>{}));
+});
+
 test('IpV4::isBroadcast()', () => {
   equal(false, IpV4.fromString('0.0.0.0').isBroadcast());
   equal(true, IpV4.fromString('255.255.255.255').isBroadcast());
+});
+
+test('IpV4.isBroadcast()', () => {
+  equal(false, IpV4.isBroadcast(0x00000000));
+  equal(true, IpV4.isBroadcast('255.255.255.255'));
+  equal(true, IpV4.isBroadcast([255, 255, 255, 255]));
+  equal(true, IpV4.isBroadcast(IpV4.fromString('255.255.255.255')));
+  throws(() => IpV4.isBroadcast(<any>{}));
 });
 
 test('IpV4::isDocumentation()', () => {
@@ -143,6 +226,14 @@ test('IpV4::isDocumentation()', () => {
   equal(true, IpV4.fromString('203.0.113.0').isDocumentation());
   equal(true, IpV4.fromString('203.0.113.255').isDocumentation());
   equal(false, IpV4.fromString('210.210.210.210').isDocumentation());
+});
+
+test('IpV4.isDocumentation()', () => {
+  equal(false, IpV4.isDocumentation(0x00000000));
+  equal(true, IpV4.isDocumentation('192.0.2.0'));
+  equal(true, IpV4.isDocumentation([192, 0, 2, 0]));
+  equal(true, IpV4.isDocumentation(IpV4.fromString('192.0.2.0')));
+  throws(() => IpV4.isDocumentation(<any>{}));
 });
 
 test('IpV4::isGlobal()', () => {
@@ -159,4 +250,12 @@ test('IpV4::isGlobal()', () => {
   equal(true, IpV4.fromString('113.0.0.113').isGlobal());
   equal(true, IpV4.fromString('23.23.23.23').isGlobal());
   equal(true, IpV4.fromString('209.3.177.59').isGlobal());
+});
+
+test('IpV4.isGlobal()', () => {
+  equal(false, IpV4.isGlobal(0x00000000));
+  equal(true, IpV4.isGlobal('209.3.177.59'));
+  equal(true, IpV4.isGlobal([209, 3, 17, 59]));
+  equal(true, IpV4.isGlobal(IpV4.fromString('209.3.177.59')));
+  throws(() => IpV4.isGlobal(<any>{}));
 });

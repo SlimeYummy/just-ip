@@ -1,6 +1,6 @@
 {
   "name": "just-ip",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "An IP library for both browser and nodejs.",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
@@ -44,7 +44,7 @@
     "mapCoverage": true
   },
   "scripts": {
-    "build": "./node_modules/.bin/tsc && echo \"Build Just-IP success !\"",
+    "build": "./node_modules/.bin/tsc && echo Build Just-IP success !",
     "test": "./node_modules/.bin/jest --coverage"
   }
 }

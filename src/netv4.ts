@@ -1,5 +1,5 @@
 import { NetV4Error, makeRegex } from './util';
-import { bs2he, he2bs, he2be, he2le } from './endian';
+import { bs2he, he2bs } from './endian';
 import { IpV4 } from './ipv4';
 
 // 192.168.0.0/24

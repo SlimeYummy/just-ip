@@ -1,3 +1,4 @@
+export declare type IpV4Like = IpV4 | string | number | Array<number>;
 export declare class IpV4 {
     private _b1;
     private _b2;
@@ -5,24 +6,38 @@ export declare class IpV4 {
     private _b4;
     private _int;
     static fromString(str: string): IpV4;
+    static tryFromString(str: string): IpV4 | null;
     static fromInt(int: number): IpV4;
+    static tryFromInt(int: number): IpV4 | null;
     static fromIntBe(int: number): IpV4;
+    static tryFromIntBe(int: number): IpV4 | null;
     static fromIntLe(int: number): IpV4;
+    static tryFromIntLe(int: number): IpV4 | null;
     static fromBytes(b1: number, b2: number, b3: number, b4: number): IpV4;
+    static tryFromBytes(b1: number, b2: number, b3: number, b4: number): IpV4 | null;
     static fromArray(array: Array<number>): IpV4;
+    static tryFromArray(array: Array<number>): IpV4 | null;
     toString(): string;
     toInt(): number;
     toIntBe(): number;
     toIntLe(): number;
     toArray(): Array<number>;
-    static equal(ip1: IpV4, ip2: IpV4): boolean;
     equal(ip: IpV4): boolean;
+    static equal(ip1: IpV4Like, ip2: IpV4Like): boolean;
     isUnspecified(): boolean;
+    static isUnspecified(ip: IpV4Like): boolean;
     isLoopback(): boolean;
+    static isLoopback(ip: IpV4Like): boolean;
     isPrivate(): boolean;
+    static isPrivate(ip: IpV4Like): boolean;
     isLinkLocal(): boolean;
+    static isLinkLocal(ip: IpV4Like): boolean;
     isMulticast(): boolean;
+    static isMulticast(ip: IpV4Like): boolean;
     isBroadcast(): boolean;
+    static isBroadcast(ip: IpV4Like): boolean;
     isDocumentation(): boolean;
+    static isDocumentation(ip: IpV4Like): boolean;
     isGlobal(): boolean;
+    static isGlobal(ip: IpV4Like): boolean;
 }
