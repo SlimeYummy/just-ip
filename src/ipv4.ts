@@ -1,20 +1,12 @@
-import { IPV4Error, makeRegex } from './util';
+import { IPV4Error } from './util';
 import { bs2he, he2bs, be2bs, be2he, le2bs, le2he, he2be } from './endian';
 
 // 127.0.0.1
-const RE_IPV4 = makeRegex(`^
-\\s*(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])
-\\s*\\.
-\\s*(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])
-\\s*\\.
-\\s*(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])
-\\s*\\.
-\\s*(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])
-\\s*$`);
+const RE_IPV4 = /^\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*$/;
 
 export type IpV4Like = IpV4 | string | number | Array<number>;
 
-function castIpV4(ip: IpV4Like): IpV4 {
+export function castIpV4(ip: IpV4Like): IpV4 {
   if (typeof ip === 'string') {
     return IpV4.fromString(ip);
   } else if (typeof ip === 'number') {
@@ -36,14 +28,14 @@ export class IpV4 {
   private _int: number = 0;
 
   public static fromString(str: string): IpV4 {
-    const ip = IpV4.tryFromString(str);
+    const ip = IpV4.tryString(str);
     if (!ip) {
       throw new IPV4Error();
     }
     return ip;
   }
 
-  public static tryFromString(str: string): IpV4 | null {
+  public static tryString(str: string): IpV4 | null {
     const match = RE_IPV4.exec(str);
     if (!match) {
       return null;
@@ -53,19 +45,22 @@ export class IpV4 {
     ip._b2 = parseInt(match[2]);
     ip._b3 = parseInt(match[3]);
     ip._b4 = parseInt(match[4]);
+    if (ip._b1 > 255 || ip._b2 > 255 || ip._b3 > 255 || ip._b4 > 255) {
+      return null;
+    }
     ip._int = bs2he(ip._b1, ip._b2, ip._b3, ip._b4);
     return ip;
   }
 
   public static fromInt(int: number): IpV4 {
-    const ip = IpV4.tryFromInt(int);
+    const ip = IpV4.tryInt(int);
     if (!ip) {
       throw new IPV4Error();
     }
     return ip;
   }
 
-  public static tryFromInt(int: number): IpV4 | null {
+  public static tryInt(int: number): IpV4 | null {
     if (int < -0x80000000 || 0xFFFFFFFF < int) {
       return null;
     }
@@ -81,14 +76,14 @@ export class IpV4 {
   }
 
   public static fromIntBe(int: number): IpV4 {
-    const ip = IpV4.tryFromIntBe(int);
+    const ip = IpV4.tryIntBe(int);
     if (!ip) {
       throw new IPV4Error();
     }
     return ip;
   }
 
-  public static tryFromIntBe(int: number): IpV4 | null {
+  public static tryIntBe(int: number): IpV4 | null {
     if (int < -0x80000000 || 0xFFFFFFFF < int) {
       return null;
     }
@@ -104,14 +99,14 @@ export class IpV4 {
   }
 
   public static fromIntLe(int: number): IpV4 {
-    const ip = IpV4.tryFromIntLe(int);
+    const ip = IpV4.tryIntLe(int);
     if (!ip) {
       throw new IPV4Error();
     }
     return ip;
   }
 
-  public static tryFromIntLe(int: number): IpV4 | null {
+  public static tryIntLe(int: number): IpV4 | null {
     if (int < -0x80000000 || 0xFFFFFFFF < int) {
       return null;
     }
@@ -127,14 +122,14 @@ export class IpV4 {
   }
 
   public static fromBytes(b1: number, b2: number, b3: number, b4: number): IpV4 {
-    const ip = IpV4.tryFromBytes(b1, b2, b3, b4);
+    const ip = IpV4.tryBytes(b1, b2, b3, b4);
     if (!ip) {
       throw new IPV4Error();
     }
     return ip;
   }
 
-  public static tryFromBytes(b1: number, b2: number, b3: number, b4: number): IpV4 | null {
+  public static tryBytes(b1: number, b2: number, b3: number, b4: number): IpV4 | null {
     if (
       (b1 < 0 || 255 < b1) ||
       (b2 < 0 || 255 < b2) ||
@@ -156,8 +151,8 @@ export class IpV4 {
     return IpV4.fromBytes(array[0], array[1], array[2], array[3]);
   }
 
-  public static tryFromArray(array: Array<number>): IpV4 | null {
-    return IpV4.tryFromBytes(array[0], array[1], array[2], array[3]);
+  public static tryArray(array: Array<number>): IpV4 | null {
+    return IpV4.tryBytes(array[0], array[1], array[2], array[3]);
   }
 
   public toString(): string {

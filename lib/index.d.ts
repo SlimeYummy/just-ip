@@ -1,2 +1,3 @@
-export { IpV4 } from './ipv4';
-export { NetV4 } from './netv4';
+export * from './util';
+export { IpV4, IpV4Like } from './ipv4';
+export { NetV4, NetV4Like } from './netv4';

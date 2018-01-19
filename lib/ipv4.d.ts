@@ -1,4 +1,5 @@
 export declare type IpV4Like = IpV4 | string | number | Array<number>;
+export declare function castIpV4(ip: IpV4Like): IpV4;
 export declare class IpV4 {
     private _b1;
     private _b2;
@@ -6,17 +7,17 @@ export declare class IpV4 {
     private _b4;
     private _int;
     static fromString(str: string): IpV4;
-    static tryFromString(str: string): IpV4 | null;
+    static tryString(str: string): IpV4 | null;
     static fromInt(int: number): IpV4;
-    static tryFromInt(int: number): IpV4 | null;
+    static tryInt(int: number): IpV4 | null;
     static fromIntBe(int: number): IpV4;
-    static tryFromIntBe(int: number): IpV4 | null;
+    static tryIntBe(int: number): IpV4 | null;
     static fromIntLe(int: number): IpV4;
-    static tryFromIntLe(int: number): IpV4 | null;
+    static tryIntLe(int: number): IpV4 | null;
     static fromBytes(b1: number, b2: number, b3: number, b4: number): IpV4;
-    static tryFromBytes(b1: number, b2: number, b3: number, b4: number): IpV4 | null;
+    static tryBytes(b1: number, b2: number, b3: number, b4: number): IpV4 | null;
     static fromArray(array: Array<number>): IpV4;
-    static tryFromArray(array: Array<number>): IpV4 | null;
+    static tryArray(array: Array<number>): IpV4 | null;
     toString(): string;
     toInt(): number;
     toIntBe(): number;

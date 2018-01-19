@@ -2,6 +2,7 @@ import 'jest';
 import { equal, deepEqual, throws } from 'assert';
 import { IpV4 } from '../src/ipv4';
 import { NetV4 } from '../src/netv4';
+import { he2be, he2le } from '../src/endian';
 
 const mockNet1 = {
   _base: IpV4.fromString('192.168.1.0').toInt(),
@@ -39,11 +40,38 @@ test('NetV4.fromString()', () => {
   throws(() => NetV4.fromString('192.168.1.0-192.168.1.117'));
 });
 
+test('NetV4.tryString()', () => {
+  deepEqual(NetV4.tryString('192.168.1.2/24'), mockNet1);
+  deepEqual(NetV4.tryString('19.19.19.19/32'), mockNet2);
+  deepEqual(NetV4.tryString('18.18.18.18/0'), mockNet3);
+  deepEqual(NetV4.tryString('192.168.1.2/255.255.255.0'), mockNet1);
+  deepEqual(NetV4.tryString('19.19.19.19/255.255.255.255'), mockNet2);
+  deepEqual(NetV4.tryString('18.18.18.18/0.0.0.0'), mockNet3);
+  deepEqual(NetV4.tryString('192.168.1.0-192.168.1.255'), mockNet1);
+  deepEqual(NetV4.tryString('19.19.19.19-19.19.19.19'), mockNet2);
+  deepEqual(NetV4.tryString('0.0.0.0-255.255.255.255'), mockNet3);
+  deepEqual(NetV4.tryString('192.168.1../24'), null);
+  deepEqual(NetV4.tryString('192.168.1.2/255.254.255.0'), null);
+  deepEqual(NetV4.tryString('192.168.1.255-192.168.1.0'), null);
+  deepEqual(NetV4.tryString('192.168.1.0-192.168.1.117'), null);
+});
+
 test('NetV4.fromStringPrefix()', () => {
   deepEqual(NetV4.fromStringPrefix('192.168.1.2/24'), mockNet1);
   deepEqual(NetV4.fromStringPrefix('19.19.19.19/32'), mockNet2);
   deepEqual(NetV4.fromStringPrefix('18.18.18.18/0'), mockNet3);
   throws(() => NetV4.fromStringPrefix('192.168.1../24'));
+  throws(() => NetV4.fromStringPrefix('192.168.1.300/24'));
+  throws(() => NetV4.fromStringPrefix('192.168.1.2/33'));
+});
+
+test('NetV4.tryStringPrefix()', () => {
+  deepEqual(NetV4.tryStringPrefix('192.168.1.2/24'), mockNet1);
+  deepEqual(NetV4.tryStringPrefix('19.19.19.19/32'), mockNet2);
+  deepEqual(NetV4.tryStringPrefix('18.18.18.18/0'), mockNet3);
+  deepEqual(NetV4.tryStringPrefix('192.168.1../24'), null);
+  deepEqual(NetV4.tryStringPrefix('192.168.1.300'), null);
+  deepEqual(NetV4.tryStringPrefix('192.168.1.2/33'), null);
 });
 
 test('NetV4.fromStringMask()', () => {
@@ -51,21 +79,51 @@ test('NetV4.fromStringMask()', () => {
   deepEqual(NetV4.fromStringMask('19.19.19.19/255.255.255.255'), mockNet2);
   deepEqual(NetV4.fromStringMask('18.18.18.18/0.0.0.0'), mockNet3);
   throws(() => NetV4.fromStringMask('192.168.1.2//255.255.255.0'));
+  throws(() => NetV4.fromStringMask('192.168.1.300/255.255.255.0'));
+  throws(() => NetV4.fromStringMask('192.168.1.2/255.255.300.0'));
   throws(() => NetV4.fromStringMask('192.168.1.2/255.254.255.0'));
+});
+
+test('NetV4.tryStringMask()', () => {
+  deepEqual(NetV4.tryStringMask('192.168.1.2/255.255.255.0'), mockNet1);
+  deepEqual(NetV4.tryStringMask('19.19.19.19/255.255.255.255'), mockNet2);
+  deepEqual(NetV4.tryStringMask('18.18.18.18/0.0.0.0'), mockNet3);
+  deepEqual(NetV4.tryStringMask('192.168.1.2//255.255.255.0'), null);
+  deepEqual(NetV4.tryStringMask('192.168.1.300/255.255.255.0'), null);
+  deepEqual(NetV4.tryStringMask('192.168.1.2/255.255.300.0'), null);
+  deepEqual(NetV4.tryStringMask('192.168.1.2/255.254.255.0'), null);
 });
 
 test('NetV4.fromStringRange()', () => {
   deepEqual(NetV4.fromStringRange('192.168.1.0-192.168.1.255'), mockNet1);
   deepEqual(NetV4.fromStringRange('19.19.19.19-19.19.19.19'), mockNet2);
   deepEqual(NetV4.fromStringRange('0.0.0.0-255.255.255.255'), mockNet3);
+  throws(() => NetV4.fromStringRange('0.0.0.300-0.0.0.0'));
+  throws(() => NetV4.fromStringRange('0.0.0.0-0.0.0.300'));
   throws(() => NetV4.fromStringRange('192.168.1..-192.168.1.255'));
   throws(() => NetV4.fromStringRange('192.168.1.255-192.168.1.0'));
   throws(() => NetV4.fromStringRange('192.168.1.0-192.168.1.117'));
 });
 
-test('NetV4.fromStringPrefix()', () => {
+test('NetV4.tryStringRange()', () => {
+  deepEqual(NetV4.tryStringRange('192.168.1.0-192.168.1.255'), mockNet1);
+  deepEqual(NetV4.tryStringRange('19.19.19.19-19.19.19.19'), mockNet2);
+  deepEqual(NetV4.tryStringRange('0.0.0.0-255.255.255.255'), mockNet3);
+  deepEqual(NetV4.tryStringRange('0.0.0.300-0.0.0.0'), null);
+  deepEqual(NetV4.tryStringRange('0.0.0.0-0.0.0.300'), null);
+  deepEqual(NetV4.tryStringRange('192.168.1..-192.168.1.255'), null);
+  deepEqual(NetV4.tryStringRange('192.168.1.255-192.168.1.0'), null);
+  deepEqual(NetV4.tryStringRange('192.168.1.0-192.168.1.117'), null);
+});
+
+test('NetV4.fromIpPrefix()', () => {
   deepEqual(NetV4.fromIpPrefix(ipAddr, 24), mockNet1);
   throws(() => NetV4.fromIpPrefix(ipAddr, 33));
+});
+
+test('NetV4.tryIpPrefix()', () => {
+  deepEqual(NetV4.tryIpPrefix(ipAddr, 24), mockNet1);
+  deepEqual(NetV4.tryIpPrefix(ipAddr, 33), null);
 });
 
 test('NetV4.fromIpMask()', () => {
@@ -73,9 +131,19 @@ test('NetV4.fromIpMask()', () => {
   throws(() => NetV4.fromIpMask(ipAddr, ipStart));
 });
 
+test('NetV4.tryIpMask()', () => {
+  deepEqual(NetV4.tryIpMask(ipAddr, ipMask), mockNet1);
+  deepEqual(NetV4.tryIpMask(ipAddr, ipStart), null);
+});
+
 test('NetV4.fromIpRange()', () => {
   deepEqual(NetV4.fromIpRange(ipStart, ipFinish), mockNet1);
   throws(() => NetV4.fromIpRange(ipFinish, ipStart));
+});
+
+test('NetV4.tryIpRange()', () => {
+  deepEqual(NetV4.tryIpRange(ipStart, ipFinish), mockNet1);
+  deepEqual(NetV4.tryIpRange(ipFinish, ipStart), null);
 });
 
 test('NetV4::toString()', () => {
@@ -103,120 +171,109 @@ test('NetV4::getSize()', () => {
 });
 
 test('NetV4::getMask()', () => {
-  deepEqual(
-    NetV4.fromString('255.255.255.255/20').getMask(),
-    IpV4.fromString('255.255.240.0')
-  );
-});
-
-test('NetV4::getMaskInt()', () => {
-  equal(
-    NetV4.fromString('255.255.255.255/20').getMaskInt(),
-    IpV4.fromString('255.255.240.0').toInt()
-  );
+  deepEqual(NetV4.fromString('255.255.255.255/20').getMask(), IpV4.fromString('255.255.240.0'));
+  deepEqual(NetV4.fromString('255.255.255.255/20').getMask('ip'), IpV4.fromString('255.255.240.0'));
+  deepEqual(NetV4.fromString('255.255.255.255/20').getMask('he'), 0xFFFFF000);
+  deepEqual(NetV4.fromString('255.255.255.255/20').getMask('be'), he2be(0xFFFFF000));
+  deepEqual(NetV4.fromString('255.255.255.255/20').getMask('le'), he2le(0xFFFFF000));
+  deepEqual(NetV4.fromString('255.255.255.255/20').getMask('str'), '255.255.240.0');
+  deepEqual(NetV4.fromString('255.255.255.255/20').getMask('arr'), [255, 255, 240, 0]);
+  throws(() => NetV4.fromString('255.255.255.255/20').getMask(<any>''));
 });
 
 test('NetV4::getHostMask()', () => {
-  deepEqual(
-    NetV4.fromString('255.255.255.255/28').getHostMask(),
-    IpV4.fromString('0.0.0.15')
-  );
-});
-
-test('NetV4::getHostMaskInt()', () => {
-  equal(
-    NetV4.fromString('255.255.255.255/28').getHostMaskInt(),
-    IpV4.fromString('0.0.0.15').toInt()
-  );
+  deepEqual(NetV4.fromString('255.255.255.255/28').getHostMask(), IpV4.fromString('0.0.0.15'));
+  deepEqual(NetV4.fromString('255.255.255.255/28').getHostMask('ip'), IpV4.fromString('0.0.0.15'));
+  deepEqual(NetV4.fromString('255.255.255.255/28').getHostMask('he'), 0x0000000F);
+  deepEqual(NetV4.fromString('255.255.255.255/28').getHostMask('be'), he2be(0x0000000F));
+  deepEqual(NetV4.fromString('255.255.255.255/28').getHostMask('le'), he2le(0x0000000F));
+  deepEqual(NetV4.fromString('255.255.255.255/28').getHostMask('str'), '0.0.0.15');
+  deepEqual(NetV4.fromString('255.255.255.255/28').getHostMask('arr'), [0, 0, 0, 15]);
+  throws(() => NetV4.fromString('255.255.255.255/28').getHostMask(<any>''));
 });
 
 test('NetV4::getStart()', () => {
-  deepEqual(
-    NetV4.fromString('10.10.10.10/24').getStart(),
-    IpV4.fromString('10.10.10.0')
-  );
-});
-
-test('NetV4::getStartInt()', () => {
-  equal(
-    NetV4.fromString('10.10.10.10/24').getStartInt(),
-    IpV4.fromString('10.10.10.0').toInt()
-  );
+  deepEqual(NetV4.fromString('10.10.10.10/24').getStart(), IpV4.fromString('10.10.10.0'));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getStart('ip'), IpV4.fromString('10.10.10.0'));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getStart('he'), 0x0A0A0A00);
+  deepEqual(NetV4.fromString('10.10.10.10/24').getStart('be'), he2be(0x0A0A0A00));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getStart('le'), he2le(0x0A0A0A00));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getStart('str'), '10.10.10.0');
+  deepEqual(NetV4.fromString('10.10.10.10/24').getStart('arr'), [10, 10, 10, 0]);
+  throws(() => NetV4.fromString('10.10.10.10/24').getStart(<any>''));
 });
 
 test('NetV4::getFinish()', () => {
-  deepEqual(
-    NetV4.fromString('10.10.10.10/24').getFinish(),
-    IpV4.fromString('10.10.10.255')
-  );
-});
-
-test('NetV4::getFinishInt()', () => {
-  equal(
-    NetV4.fromString('10.10.10.10/24').getFinishInt(),
-    IpV4.fromString('10.10.10.255').toInt()
-  );
+  deepEqual(NetV4.fromString('10.10.10.10/24').getFinish(), IpV4.fromString('10.10.10.255'));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getFinish('ip'), IpV4.fromString('10.10.10.255'));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getFinish('he'), 0x0A0A0AFF);
+  deepEqual(NetV4.fromString('10.10.10.10/24').getFinish('be'), he2be(0x0A0A0AFF));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getFinish('le'), he2le(0x0A0A0AFF));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getFinish('str'), '10.10.10.255');
+  deepEqual(NetV4.fromString('10.10.10.10/24').getFinish('arr'), [10, 10, 10, 255]);
+  throws(() => NetV4.fromString('10.10.10.10/24').getFinish(<any>''));
 });
 
 test('NetV4::getBase()', () => {
-  deepEqual(
-    NetV4.fromString('10.10.10.10/24').getBase(),
-    IpV4.fromString('10.10.10.0')
-  );
-});
-
-test('NetV4::getBaseInt()', () => {
-  equal(
-    NetV4.fromString('10.10.10.10/24').getBaseInt(),
-    IpV4.fromString('10.10.10.0').toInt()
-  );
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBase(), IpV4.fromString('10.10.10.0'));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBase('ip'), IpV4.fromString('10.10.10.0'));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBase('he'), 0x0A0A0A00);
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBase('be'), he2be(0x0A0A0A00));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBase('le'), he2le(0x0A0A0A00));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBase('str'), '10.10.10.0');
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBase('arr'), [10, 10, 10, 0]);
+  throws(() => NetV4.fromString('10.10.10.10/24').getBase(<any>''));
 });
 
 test('NetV4::getBroadcast()', () => {
-  deepEqual(
-    NetV4.fromString('10.10.10.10/24').getBroadcast(),
-    IpV4.fromString('10.10.10.255')
-  );
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBroadcast(), IpV4.fromString('10.10.10.255'));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBroadcast('ip'), IpV4.fromString('10.10.10.255'));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBroadcast('he'), 0x0A0A0AFF);
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBroadcast('be'), he2be(0x0A0A0AFF));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBroadcast('le'), he2le(0x0A0A0AFF));
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBroadcast('str'), '10.10.10.255');
+  deepEqual(NetV4.fromString('10.10.10.10/24').getBroadcast('arr'), [10, 10, 10, 255]);
+  throws(() => NetV4.fromString('10.10.10.10/24').getBroadcast(<any>''));
 });
 
-test('NetV4::getBroadcastInt()', () => {
-  equal(
-    NetV4.fromString('10.10.10.10/24').getBroadcastInt(),
-    IpV4.fromString('10.10.10.255').toInt()
-  );
+test('NetV4::containIP()', () => {
+  equal(false, NetV4.fromString('10.10.10.10/24').containIP(IpV4.fromString('0.0.0.0')));
+  equal(true, NetV4.fromString('10.10.10.10/24').containIP(IpV4.fromString('10.10.10.0')));
+  equal(true, NetV4.fromString('10.10.10.10/24').containIP(IpV4.fromString('10.10.10.255')));
+  equal(false, NetV4.fromString('10.10.10.10/24').containIP(IpV4.fromString('10.10.11.0')));
 });
 
-test('NetV4::isContainIP()', () => {
-  equal(false, NetV4.fromString('10.10.10.10/24').isContainIP(IpV4.fromString('0.0.0.0')));
-  equal(true, NetV4.fromString('10.10.10.10/24').isContainIP(IpV4.fromString('10.10.10.0')));
-  equal(true, NetV4.fromString('10.10.10.10/24').isContainIP(IpV4.fromString('10.10.10.255')));
-  equal(false, NetV4.fromString('10.10.10.10/24').isContainIP(IpV4.fromString('10.10.11.0')));
+test('NetV4.containIP()', () => {
+  equal(true, NetV4.containIP('10.10.10.10/24', '10.10.10.10'));
+  equal(true, NetV4.containIP('10.10.10.10/24', 0x0A0A0A0A));
+  equal(true, NetV4.containIP('10.10.10.10/24', [10, 10, 10, 10]));
+  equal(true, NetV4.containIP('10.10.10.10/24', IpV4.fromString('10.10.10.10')));
+  throws(() => NetV4.containIP('10.10.10.10/24', <any>null));
 });
 
-test('NetV4::isContainNet()', () => {
-  equal(false, NetV4.fromString('10.10.10.10/24').isContainNet(NetV4.fromString('10.10.10.10/23')));
-  equal(true, NetV4.fromString('10.10.10.10/24').isContainNet(NetV4.fromString('10.10.10.10/24')));
-  equal(true, NetV4.fromString('10.10.10.10/24').isContainNet(NetV4.fromString('10.10.10.10/25')));
+test('NetV4::containNet()', () => {
+  equal(false, NetV4.fromString('10.10.10.10/24').containNet(NetV4.fromString('10.10.10.10/23')));
+  equal(true, NetV4.fromString('10.10.10.10/24').containNet(NetV4.fromString('10.10.10.10/24')));
+  equal(true, NetV4.fromString('10.10.10.10/24').containNet(NetV4.fromString('10.10.10.10/25')));
 });
 
-test('NetV4.equal()', () => {
-  equal(true, NetV4.equal(
-    NetV4.fromString('10.10.10.10/24'),
-    NetV4.fromString('10.10.10.10/255.255.255.0')
-  ));
-  equal(false, NetV4.equal(
-    NetV4.fromString('10.10.10.10/30'),
-    NetV4.fromString('10.10.10.10/255.255.255.0')
-  ));
+test('NetV4.containNet()', () => {
+  equal(true, NetV4.containNet('10.10.10.10/24', '10.10.10.10/24'));
+  equal(true, NetV4.containNet('10.10.10.10/24', '10.10.10.10/255.255.255.0'));
+  equal(true, NetV4.containNet('10.10.10.10/24', '10.10.10.0-10.10.10.255'));
+  throws(() => NetV4.containNet('10.10.10.10/24', <any>null));
 });
 
 test('NetV4::equal()', () => {
-  equal(true, NetV4.fromString('10.10.10.10/24').equal(
-    NetV4.fromString('10.10.10.10/255.255.255.0')
-  ));
-  equal(false, NetV4.fromString('10.10.10.10/28').equal(
-    NetV4.fromString('10.10.10.10/255.255.255.0')
-  ));
+  equal(true, NetV4.fromString('10.10.10.10/24').equal(NetV4.fromString('10.10.10.10/255.255.255.0')));
+  equal(false, NetV4.fromString('10.10.10.10/28').equal(NetV4.fromString('10.10.10.10/255.255.255.0')));
+});
+
+test('NetV4.equal()', () => {
+  equal(true, NetV4.equal('10.10.10.10/24', '10.10.10.10/255.255.255.0'));
+  equal(true, NetV4.equal('10.10.10.10/24', '10.10.10.0-10.10.10.255'));
+  equal(true, NetV4.equal('10.10.10.10/24', NetV4.fromString('10.10.10.10/24')));
+  throws(() => NetV4.equal('10.10.10.10/24', <any>null));
 });
 
 test('NetV4::forEachIP()', () => {
@@ -238,10 +295,21 @@ test('NetV4::isUnspecified()', () => {
   equal(false, NetV4.fromString('1.1.1.1/32').isUnspecified());
 });
 
+test('NetV4.isUnspecified()', () => {
+  equal(true, NetV4.isUnspecified('0.0.0.0/32'));
+  equal(false, NetV4.isUnspecified('1.1.1.1/32'));
+});
+
 test('NetV4::isLoopback()', () => {
   equal(true, NetV4.fromString('127.0.0.111/25').isLoopback());
   equal(true, NetV4.fromString('127.0.0.111/24').isLoopback());
   equal(false, NetV4.fromString('127.0.0.111/23').isLoopback());
+});
+
+test('NetV4.isLoopback()', () => {
+  equal(true, NetV4.isLoopback('127.0.0.111/25'));
+  equal(true, NetV4.isLoopback('127.0.0.111/24'));
+  equal(false, NetV4.isLoopback('127.0.0.111/23'));
 });
 
 test('NetV4::isPrivate()', () => {
@@ -256,10 +324,28 @@ test('NetV4::isPrivate()', () => {
   equal(false, NetV4.fromString('192.168.0.111/15').isPrivate());
 });
 
+test('NetV4.isPrivate()', () => {
+  equal(true, NetV4.isPrivate('10.0.0.111/9'));
+  equal(true, NetV4.isPrivate('10.0.0.111/8'));
+  equal(false, NetV4.isPrivate('10.0.0.111/7'));
+  equal(true, NetV4.isPrivate('172.16.0.111/13'));
+  equal(true, NetV4.isPrivate('172.16.0.111/12'));
+  equal(false, NetV4.isPrivate('172.16.0.111/11'));
+  equal(true, NetV4.isPrivate('192.168.0.111/17'));
+  equal(true, NetV4.isPrivate('192.168.0.111/16'));
+  equal(false, NetV4.isPrivate('192.168.0.111/15'));
+});
+
 test('NetV4::isLinkLocal()', () => {
   equal(true, NetV4.fromString('169.254.0.111/17').isLinkLocal());
   equal(true, NetV4.fromString('169.254.0.111/16').isLinkLocal());
   equal(false, NetV4.fromString('169.254.0.111/15').isLinkLocal());
+});
+
+test('NetV4.isLinkLocal()', () => {
+  equal(true, NetV4.isLinkLocal('169.254.0.111/17'));
+  equal(true, NetV4.isLinkLocal('169.254.0.111/16'));
+  equal(false, NetV4.isLinkLocal('169.254.0.111/15'));
 });
 
 test('NetV4::isMulticast()', () => {
@@ -268,9 +354,20 @@ test('NetV4::isMulticast()', () => {
   equal(false, NetV4.fromString('224.0.0.111/3').isMulticast());
 });
 
+test('NetV4.isMulticast()', () => {
+  equal(true, NetV4.isMulticast('224.0.0.111/5'));
+  equal(true, NetV4.isMulticast('224.0.0.111/4'));
+  equal(false, NetV4.isMulticast('224.0.0.111/3'));
+});
+
 test('NetV4::isBroadcast()', () => {
   equal(true, NetV4.fromString('255.255.255.255/32').isBroadcast());
   equal(false, NetV4.fromString('1.1.1.1/32').isBroadcast());
+});
+
+test('NetV4.isBroadcast()', () => {
+  equal(true, NetV4.isBroadcast('255.255.255.255/32'));
+  equal(false, NetV4.isBroadcast('1.1.1.1/32'));
 });
 
 test('NetV4::isDocumentation()', () => {
@@ -283,6 +380,18 @@ test('NetV4::isDocumentation()', () => {
   equal(true, NetV4.fromString('203.0.113.111/25').isDocumentation());
   equal(true, NetV4.fromString('203.0.113.111/24').isDocumentation());
   equal(false, NetV4.fromString('203.0.113.111/23').isDocumentation());
+});
+
+test('NetV4.isDocumentation()', () => {
+  equal(true, NetV4.isDocumentation('192.0.2.111/25'));
+  equal(true, NetV4.isDocumentation('192.0.2.111/24'));
+  equal(false, NetV4.isDocumentation('192.0.2.111/23'));
+  equal(true, NetV4.isDocumentation('198.51.100.111/25'));
+  equal(true, NetV4.isDocumentation('198.51.100.111/24'));
+  equal(false, NetV4.isDocumentation('198.51.100.111/23'));
+  equal(true, NetV4.isDocumentation('203.0.113.111/25'));
+  equal(true, NetV4.isDocumentation('203.0.113.111/24'));
+  equal(false, NetV4.isDocumentation('203.0.113.111/23'));
 });
 
 test('NetV4::isGlobal()', () => {
@@ -299,4 +408,20 @@ test('NetV4::isGlobal()', () => {
   equal(true, NetV4.fromString('113.0.0.113/31').isGlobal());
   equal(true, NetV4.fromString('23.23.23.23/16').isGlobal());
   equal(true, NetV4.fromString('209.3.177.59/8').isGlobal());
+});
+
+test('NetV4.isGlobal()', () => {
+  equal(false, NetV4.isGlobal('0.0.0.0/32'));
+  equal(false, NetV4.isGlobal('10.0.0.0/8'));
+  equal(false, NetV4.isGlobal('127.0.0.0/24'));
+  equal(false, NetV4.isGlobal('169.254.0.0/16'));
+  equal(false, NetV4.isGlobal('172.16.0.0/12'));
+  equal(false, NetV4.isGlobal('192.168.0.0/16'));
+  equal(false, NetV4.isGlobal('192.0.2.0/24'));
+  equal(false, NetV4.isGlobal('198.51.100.0/24'));
+  equal(false, NetV4.isGlobal('203.0.113.0/24'));
+  equal(false, NetV4.isGlobal('255.255.255.255/32'));
+  equal(true, NetV4.isGlobal('113.0.0.113/31'));
+  equal(true, NetV4.isGlobal('23.23.23.23/16'));
+  equal(true, NetV4.isGlobal('209.3.177.59/8'));
 });

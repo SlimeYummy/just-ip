@@ -19,11 +19,12 @@ const ipArray = [192, 168, 1, 2];
 test('IpV4.fromString()', () => {
   deepEqual(IpV4.fromString(ipString), mockIp);
   throws(() => { IpV4.fromString('1.1.1.1.0') });
+  throws(() => { IpV4.fromString('1.1.1.256') });
 });
 
-test('IpV4.tryFromString()', () => {
-  deepEqual(IpV4.tryFromString(ipString), mockIp);
-  deepEqual(IpV4.tryFromString('1.1.1.1.0'), null);
+test('IpV4.tryString()', () => {
+  deepEqual(IpV4.tryString(ipString), mockIp);
+  deepEqual(IpV4.tryString('1.1.1.1.0'), null);
 });
 
 test('IpV4.fromInt()', () => {
@@ -31,9 +32,9 @@ test('IpV4.fromInt()', () => {
   throws(() => { IpV4.fromInt(-0x80000001) });
 });
 
-test('IpV4.tryFromInt()', () => {
-  deepEqual(IpV4.tryFromInt(ipIntHe), mockIp);
-  deepEqual(IpV4.tryFromInt(-0x80000001), null);;
+test('IpV4.tryInt()', () => {
+  deepEqual(IpV4.tryInt(ipIntHe), mockIp);
+  deepEqual(IpV4.tryInt(-0x80000001), null);;
 });
 
 test('IpV4.fromIntBe()', () => {
@@ -41,9 +42,9 @@ test('IpV4.fromIntBe()', () => {
   throws(() => { IpV4.fromIntBe(0x100000000) });
 });
 
-test('IpV4.tryFromIntBe()', () => {
-  deepEqual(IpV4.tryFromIntBe(ipIntBe), mockIp);
-  deepEqual(IpV4.tryFromIntBe(0x100000000), null);;
+test('IpV4.tryIntBe()', () => {
+  deepEqual(IpV4.tryIntBe(ipIntBe), mockIp);
+  deepEqual(IpV4.tryIntBe(0x100000000), null);;
 });
 
 test('IpV4.fromIntLe()', () => {
@@ -51,9 +52,9 @@ test('IpV4.fromIntLe()', () => {
   throws(() => { IpV4.fromIntLe(0x100000000) });
 });
 
-test('IpV4.tryFromIntLe()', () => {
-  deepEqual(IpV4.tryFromIntLe(ipIntLe), mockIp);
-  deepEqual(IpV4.tryFromIntLe(0x100000000), null);;
+test('IpV4.tryIntLe()', () => {
+  deepEqual(IpV4.tryIntLe(ipIntLe), mockIp);
+  deepEqual(IpV4.tryIntLe(0x100000000), null);;
 });
 
 test('IpV4.fromBytes()', () => {
@@ -62,10 +63,10 @@ test('IpV4.fromBytes()', () => {
   throws(() => { IpV4.fromBytes(192, 168, 1, -1) });
 });
 
-test('IpV4.tryFromBytes()', () => {
-  deepEqual(IpV4.tryFromBytes(192, 168, 1, 2), mockIp);
-  deepEqual(IpV4.tryFromBytes(192, 168, 1, 256), null);
-  deepEqual(IpV4.tryFromBytes(192, 168, 1, -1), null);
+test('IpV4.tryBytes()', () => {
+  deepEqual(IpV4.tryBytes(192, 168, 1, 2), mockIp);
+  deepEqual(IpV4.tryBytes(192, 168, 1, 256), null);
+  deepEqual(IpV4.tryBytes(192, 168, 1, -1), null);
 });
 
 test('IpV4.fromArray()', () => {
@@ -74,10 +75,10 @@ test('IpV4.fromArray()', () => {
   throws(() => { IpV4.fromArray([192, 168, 1, -1]) });
 });
 
-test('IpV4.tryFromArray()', () => {
-  deepEqual(IpV4.tryFromArray(ipArray), mockIp);
-  deepEqual(IpV4.tryFromArray([192, 168, 1, 256]), null);
-  deepEqual(IpV4.tryFromArray([192, 168, 1, -1]), null);
+test('IpV4.tryArray()', () => {
+  deepEqual(IpV4.tryArray(ipArray), mockIp);
+  deepEqual(IpV4.tryArray([192, 168, 1, 256]), null);
+  deepEqual(IpV4.tryArray([192, 168, 1, -1]), null);
 });
 
 test('IpV4::toString()', () => {
