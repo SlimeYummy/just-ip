@@ -1,4 +1,4 @@
-import { IPV4Error } from './util';
+import { IPV4Error } from './utilv4';
 import { bs2he, he2bs, be2bs, be2he, le2bs, le2he, he2be } from './endian';
 
 // 127.0.0.1

@@ -1,4 +1,4 @@
-import { NetV4Error, IpV4LikeEnum } from './util';
+import { NetV4Error, IpV4LikeEnum, toStringV4 } from './utilv4';
 import { bs2he, he2bs, he2be, he2le } from './endian';
 import { IpV4, IpV4Like, castIpV4 } from './ipv4';
 
@@ -79,11 +79,6 @@ function range2Mask(start: number, finish: number): number {
   return mask;
 }
 
-function ip2String(int: number): string {
-  const bytes = he2bs(int);
-  return `${bytes[0]}.${bytes[1]}.${bytes[2]}.${bytes[3]}`;
-}
-
 function ip2Array(int: number): Array<number> {
   const bytes = he2bs(int);
   return [bytes[0], bytes[1], bytes[2], bytes[3]];
@@ -95,7 +90,7 @@ function toIpV4Like(int: number, type: IpV4LikeEnum): IpV4Like {
     case 'he': return int;
     case 'be': return he2be(int);
     case 'le': return he2le(int);
-    case 'str': return ip2String(int);
+    case 'str': return toStringV4(int);
     case 'arr': return ip2Array(int);
     default: throw new Error();
   }
@@ -288,19 +283,19 @@ export class NetV4 {
   }
 
   public toString() {
-    return `${ip2String(this._base)}/${this._prefix}`;
+    return `${toStringV4(this._base)}/${this._prefix}`;
   }
 
   public toStringPrefix() {
-    return `${ip2String(this._base)}/${this._prefix}`;
+    return `${toStringV4(this._base)}/${this._prefix}`;
   }
 
   public toStringMask() {
-    return `${ip2String(this._base)}/${ip2String(this._mask)}`;
+    return `${toStringV4(this._base)}/${toStringV4(this._mask)}`;
   }
 
   public toStringRange() {
-    return `${ip2String(this._base)}-${ip2String(this._base + (0xFFFFFFFF - this._mask))}`;
+    return `${toStringV4(this._base)}-${toStringV4(this._base + (0xFFFFFFFF - this._mask))}`;
   }
 
   public getPrefixLen(): number {
