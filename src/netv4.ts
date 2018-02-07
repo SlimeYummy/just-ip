@@ -303,7 +303,10 @@ export class NetV4 {
   }
 
   public getSize(): number {
-    return 1 << (32 - this._prefix);
+    if (this._prefix > 0) {
+      return 1 << (32 - this._prefix) >>> 0;
+    }
+    return 0x100000000;
   }
 
   public getMask(): IpV4;
@@ -448,6 +451,19 @@ export class NetV4 {
 
   public static containNet(net1: NetV4Like, net2: NetV4Like): boolean {
     return castNetV4(net1).containNet(castNetV4(net2));
+  }
+
+  public intersectNet(net: NetV4): boolean {
+    if (this._prefix <= net._prefix) {
+      return (net._base & this._mask) >>> 0 === this._base;
+    } else {
+      console.log((this._base & net._mask) >>> 0, net._base);
+      return (this._base & net._mask) >>> 0 === net._base;
+    }
+  }
+
+  public static intersectNet(net1: NetV4Like, net2: NetV4Like): boolean {
+    return castNetV4(net1).intersectNet(castNetV4(net2));
   }
 
   public equal(net: NetV4): boolean {

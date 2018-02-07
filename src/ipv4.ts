@@ -159,20 +159,40 @@ export class IpV4 {
     return `${this._b1}.${this._b2}.${this._b3}.${this._b4}`;
   }
 
+  public static toString(ip: IpV4Like): string {
+    return castIpV4(ip).toString();
+  }
+
   public toInt(): number {
     return this._int;
+  }
+
+  public static toInt(ip: IpV4Like): number {
+    return castIpV4(ip).toInt();
   }
 
   public toIntBe(): number {
     return he2be(this._int);
   }
 
+  public static toIntBe(ip: IpV4Like): number {
+    return castIpV4(ip).toIntBe();
+  }
+
   public toIntLe(): number {
     return le2he(this._int);
   }
 
+  public static toIntLe(ip: IpV4Like): number {
+    return castIpV4(ip).toIntLe();
+  }
+
   public toArray(): Array<number> {
     return [this._b1, this._b2, this._b3, this._b4];
+  }
+
+  public static toArray(ip: IpV4Like): Array<number> {
+    return castIpV4(ip).toArray();
   }
 
   public equal(ip: IpV4): boolean {
