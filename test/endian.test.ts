@@ -3,7 +3,9 @@ import { equal, deepEqual } from 'assert';
 import {
   bs2le, bs2be, bs2he,
   le2bs, he2bs, be2bs,
-  le2be, le2he, be2le, be2he, he2le, he2be
+  le2be, le2he, be2le, be2he, he2le, he2be,
+  ss2le, ss2be, ss2he,
+  le2ss, be2ss, he2ss,
 } from '../src/endian';
 
 const intLe = new Uint32Array(new Uint8Array([0x44, 0x33, 0x22, 0x11]).buffer)[0];
@@ -25,3 +27,21 @@ test('intBe()', () => equal(be2le(intBe), intLe));
 test('intBe()', () => equal(be2he(intBe), intHe));
 test('intHe()', () => equal(he2le(intHe), intLe));
 test('intHe()', () => equal(he2be(intHe), intBe));
+
+test('ss2le()', () => {
+  const actual = ss2le(1, 2, 3, 4, 5, 6, 7, 8);
+  const excepted = new Uint8Array([1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0]);
+  deepEqual(actual.buffer, excepted.buffer);
+});
+
+test('ss2be()', () => {
+  const actual = ss2be(1, 2, 3, 4, 5, 6, 7, 8);
+  const excepted = new Uint8Array([0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8]);
+  deepEqual(actual.buffer, excepted.buffer);
+});
+
+test('ss2he()', () => {
+  const actual = ss2he(1, 2, 3, 4, 5, 6, 7, 8);
+  const excepted = new Uint16Array([1, 2, 3, 4, 5, 6, 7, 8]);
+  deepEqual(actual.buffer, excepted.buffer);
+});

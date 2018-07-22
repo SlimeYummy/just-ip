@@ -3,13 +3,7 @@ import { equal, deepEqual, throws } from 'assert';
 import { he2be, he2le } from '../src/endian';
 import { IpV4 } from '../src/ipv4';
 
-const mockIp = {
-  _b1: 192,
-  _b2: 168,
-  _b3: 1,
-  _b4: 2,
-  _int: 3232235778,
-};
+const mockIp = { _int: 3232235778 };
 const ipString = "192.168.1.2"
 const ipIntHe = 3232235778;
 const ipIntBe = he2be(3232235778);

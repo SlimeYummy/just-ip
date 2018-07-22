@@ -1,6 +1,9 @@
-import { NetV4Error, IpV4LikeEnum, toStringV4 } from './utilv4';
 import { bs2he, he2bs, he2be, he2le } from './endian';
-import { IpV4, IpV4Like, castIpV4 } from './ipv4';
+import { IpV4, IpV4Like } from './ipv4';
+
+export class NetV4Error extends Error { };
+
+export type NetV4Like = NetV4 | string;
 
 // 192.168.0.0/24
 const RE_SUBNET_V4_PREFIX = /^\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\/\s*(\d{1,2})\s*$/;
@@ -11,132 +14,39 @@ const RE_SUBNET_V4_MASK = /^\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\
 // 192.168.0.0-192.168.0.255
 const RE_SUBNET_V4_RANGE = /^\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\-\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*$/;
 
-function parseIp(s1: string, s2: string, s3: string, s4: string): number {
-  const b1 = parseInt(s1);
-  const b2 = parseInt(s2);
-  const b3 = parseInt(s3);
-  const b4 = parseInt(s4);
-  if (b1 > 255 || b2 > 255 || b3 > 255 || b4 > 255) {
-    return -1;
-  }
-  return bs2he(b1, b2, b3, b4);
-}
-
-function parseMask(s1: string, s2: string, s3: string, s4: string): number {
-  const b1 = parseInt(s1);
-  const b2 = parseInt(s2);
-  const b3 = parseInt(s3);
-  const b4 = parseInt(s4);
-  if (b1 > 255 || b2 > 255 || b3 > 255 || b4 > 255) {
-    return -1;
-  }
-  const mask = bs2he(b1, b2, b3, b4);
-  const hostMask = 0xFFFFFFFF - mask;
-  if ((hostMask & (hostMask + 1)) !== 0) {
-    return -1;
-  }
-  return mask;
-}
-
-function parsePrefix(s: string): number {
-  const prefix = parseInt(s);
-  if (prefix < 0 || 32 < prefix) {
-    return -1;
-  }
-  return prefix;
-}
-
-function prefix2Mask(prefix: number): number {
-  if (prefix === 0) {
-    return 0;
-  }
-  const suffix = 32 - prefix;
-  const hostMask = ((1 << suffix) >>> 0) - 1;
-  return 0xFFFFFFFF - hostMask;
-}
-
-function mask2Prefix(mask: number): number {
-  if (mask === 0) {
-    return 0;
-  }
-  let count = 0;
-  const hostMask = 0xFFFFFFFF - mask;
-  while (hostMask >>> count > 0) {
-    count = count + 1;
-  }
-  return 32 - count;
-}
-
-function range2Mask(start: number, finish: number): number {
-  if (start > finish) {
-    return -1;
-  }
-  const hostMask = finish - start;
-  const mask = 0xFFFFFFFF - hostMask;
-  if ((hostMask & (hostMask + 1)) !== 0) {
-    return -1;
-  }
-  return mask;
-}
-
-function ip2Array(int: number): Array<number> {
-  const bytes = he2bs(int);
-  return [bytes[0], bytes[1], bytes[2], bytes[3]];
-}
-
-function toIpV4Like(int: number, type: IpV4LikeEnum): IpV4Like {
-  switch (type) {
-    case 'ip': return IpV4.fromInt(int);
-    case 'he': return int;
-    case 'be': return he2be(int);
-    case 'le': return he2le(int);
-    case 'str': return toStringV4(int);
-    case 'arr': return ip2Array(int);
-    default: throw new Error();
-  }
-}
-
-export type NetV4Like = NetV4 | string;
-
-export function castNetV4(net: NetV4Like): NetV4 {
-  if (typeof net === 'string') {
-    return NetV4.fromString(net);
-  } else if (net instanceof NetV4) {
-    return net;
-  } else {
-    throw new NetV4Error();
-  }
-}
-
 export class NetV4 {
   private _base: number = 0;
   private _mask: number = 0;
   private _prefix: number = 0;
 
-  public static fromString(str: string): NetV4 {
-    let net: NetV4 | null = null;
-    if (net = NetV4.tryStringPrefix(str)) {
-      return net;
-    } else if (net = NetV4.tryStringMask(str)) {
-      return net;
-    } else if (net = NetV4.tryStringRange(str)) {
-      return net;
-    } else {
+  public static from(like: NetV4Like): NetV4 {
+    const net = NetV4.try(like);
+    if (!net) {
       throw new NetV4Error();
     }
+    return net;
   }
 
-  public static tryString(str: string): NetV4 | null {
-    let net: NetV4 | null = null;
-    if (net = NetV4.tryStringPrefix(str)) {
-      return net;
-    } else if (net = NetV4.tryStringMask(str)) {
-      return net;
-    } else if (net = NetV4.tryStringRange(str)) {
-      return net;
+  public static try(like: NetV4Like): NetV4 | null {
+    if (like instanceof NetV4) {
+      return like;
+    } else if (typeof like === 'string') {
+      return NetV4.fromString(like);
     } else {
       return null;
     }
+  }
+
+  public static fromString(str: string): NetV4 {
+    const net = NetV4.tryString(str);
+    if (!net) {
+      throw new NetV4Error();
+    }
+    return net;
+  }
+
+  public static tryString(str: string): NetV4 | null {
+    return NetV4.tryStringPrefix(str) || NetV4.tryStringMask(str) || NetV4.tryStringRange(str);
   }
 
   public static fromStringPrefix(str: string): NetV4 {
@@ -283,19 +193,29 @@ export class NetV4 {
   }
 
   public toString() {
-    return `${toStringV4(this._base)}/${this._prefix}`;
+    const a = he2bs(this._base);
+    return `${a[0]}.${a[1]}.${a[2]}.${a[3]}/${this._prefix}`;
   }
 
   public toStringPrefix() {
-    return `${toStringV4(this._base)}/${this._prefix}`;
+    const a = he2bs(this._base);
+    return `${a[0]}.${a[1]}.${a[2]}.${a[3]}/${this._prefix}`;
   }
 
   public toStringMask() {
-    return `${toStringV4(this._base)}/${toStringV4(this._mask)}`;
+    const a = he2bs(this._base);
+    const base = `${a[0]}.${a[1]}.${a[2]}.${a[3]}`;
+    const b = he2bs(this._mask);
+    const mask = `${b[0]}.${b[1]}.${b[2]}.${b[3]}`;
+    return `${base}/${mask}`;
   }
 
   public toStringRange() {
-    return `${toStringV4(this._base)}-${toStringV4(this._base + (0xFFFFFFFF - this._mask))}`;
+    const a = he2bs(this._base);
+    const start = `${a[0]}.${a[1]}.${a[2]}.${a[3]}`;
+    const b = he2bs(this._base + (0xFFFFFFFF - this._mask));
+    const finish = `${b[0]}.${b[1]}.${b[2]}.${b[3]}`;
+    return `${start}-${finish}`;
   }
 
   public getPrefixLen(): number {
@@ -306,58 +226,52 @@ export class NetV4 {
     return 1 << (32 - this._prefix);
   }
 
-  public getMask(): IpV4;
-  public getMask(type: 'ip'): IpV4;
-  public getMask(type: 'he' | 'be' | 'le'): number;
-  public getMask(type: 'str'): string;
-  public getMask(type: 'arr'): Array<number>;
-  public getMask(type: IpV4LikeEnum = 'ip'): IpV4Like {
-    return toIpV4Like(this._mask, type);
+  public getMask(): IpV4 {
+    return IpV4.from(this._mask);
   }
 
-  public getHostMask(): IpV4;
-  public getHostMask(type: 'ip'): IpV4;
-  public getHostMask(type: 'he' | 'be' | 'le'): number;
-  public getHostMask(type: 'str'): string;
-  public getHostMask(type: 'arr'): Array<number>;
-  public getHostMask(type: IpV4LikeEnum = 'ip'): IpV4Like {
-    return toIpV4Like(0xFFFFFFFF - this._mask, type);
+  public getMaskInt(): number {
+    return this._mask;
   }
 
-  public getStart(): IpV4;
-  public getStart(type: 'ip'): IpV4;
-  public getStart(type: 'he' | 'be' | 'le'): number;
-  public getStart(type: 'str'): string;
-  public getStart(type: 'arr'): Array<number>;
-  public getStart(type: IpV4LikeEnum = 'ip'): IpV4Like {
-    return toIpV4Like(this._base, type);
+  public getHostMask(): IpV4 {
+    return IpV4.from(0xFFFFFFFF - this._mask);
   }
 
-  public getFinish(): IpV4;
-  public getFinish(type: 'ip'): IpV4;
-  public getFinish(type: 'he' | 'be' | 'le'): number;
-  public getFinish(type: 'str'): string;
-  public getFinish(type: 'arr'): Array<number>;
-  public getFinish(type: IpV4LikeEnum = 'ip'): IpV4Like {
-    return toIpV4Like(this._base + (0xFFFFFFFF - this._mask), type);
+  public getHostMaskInt(): number {
+    return 0xFFFFFFFF - this._mask;
   }
 
-  public getBase(): IpV4;
-  public getBase(type: 'ip'): IpV4;
-  public getBase(type: 'he' | 'be' | 'le'): number;
-  public getBase(type: 'str'): string;
-  public getBase(type: 'arr'): Array<number>;
-  public getBase(type: IpV4LikeEnum = 'ip'): IpV4Like {
-    return toIpV4Like(this._base, type);
+  public getStart(): IpV4 {
+    return IpV4.from(this._base);
   }
 
-  public getBroadcast(): IpV4;
-  public getBroadcast(type: 'ip'): IpV4;
-  public getBroadcast(type: 'he' | 'be' | 'le'): number;
-  public getBroadcast(type: 'str'): string;
-  public getBroadcast(type: 'arr'): Array<number>;
-  public getBroadcast(type: IpV4LikeEnum = 'ip'): IpV4Like {
-    return toIpV4Like(this._base + (0xFFFFFFFF - this._mask), type);
+  public getStartInt(): number {
+    return this._base;
+  }
+
+  public getFinish(): IpV4 {
+    return IpV4.from(this._base + (0xFFFFFFFF - this._mask));
+  }
+
+  public getBase(): IpV4 {
+    return IpV4.from(this._base);
+  }
+
+  public getBaseInt(): number {
+    return this._base;
+  }
+
+  public getFinishInt(): number {
+    return this._base + (0xFFFFFFFF - this._mask);
+  }
+
+  public getBroadcast(): IpV4 {
+    return IpV4.from(this._base + (0xFFFFFFFF - this._mask));
+  }
+
+  public getBroadcastInt(): number {
+    return this._base + (0xFFFFFFFF - this._mask);
   }
 
   public isUnspecified(): boolean {
@@ -365,7 +279,7 @@ export class NetV4 {
   }
 
   public static isUnspecified(net: NetV4Like): boolean {
-    return castNetV4(net).isUnspecified();
+    return NetV4.from(net).isUnspecified();
   }
 
   public isLoopback(): boolean {
@@ -373,7 +287,7 @@ export class NetV4 {
   }
 
   public static isLoopback(net: NetV4Like): boolean {
-    return castNetV4(net).isLoopback();
+    return NetV4.from(net).isLoopback();
   }
 
   public isPrivate(): boolean {
@@ -383,7 +297,7 @@ export class NetV4 {
   }
 
   public static isPrivate(net: NetV4Like): boolean {
-    return castNetV4(net).isPrivate();
+    return NetV4.from(net).isPrivate();
   }
 
   public isLinkLocal(): boolean {
@@ -391,7 +305,7 @@ export class NetV4 {
   }
 
   public static isLinkLocal(net: NetV4Like): boolean {
-    return castNetV4(net).isLinkLocal();
+    return NetV4.from(net).isLinkLocal();
   }
 
   public isMulticast(): boolean {
@@ -399,7 +313,7 @@ export class NetV4 {
   }
 
   public static isMulticast(net: NetV4Like): boolean {
-    return castNetV4(net).isMulticast();
+    return NetV4.from(net).isMulticast();
   }
 
   public isBroadcast(): boolean {
@@ -407,7 +321,7 @@ export class NetV4 {
   }
 
   public static isBroadcast(net: NetV4Like): boolean {
-    return castNetV4(net).isBroadcast();
+    return NetV4.from(net).isBroadcast();
   }
 
   public isDocumentation(): boolean {
@@ -417,7 +331,7 @@ export class NetV4 {
   }
 
   public static isDocumentation(net: NetV4Like): boolean {
-    return castNetV4(net).isDocumentation();
+    return NetV4.from(net).isDocumentation();
   }
 
   public isGlobal(): boolean {
@@ -430,7 +344,7 @@ export class NetV4 {
   }
 
   public static isGlobal(net: NetV4Like): boolean {
-    return castNetV4(net).isGlobal();
+    return NetV4.from(net).isGlobal();
   }
 
   public containIP(ip: IpV4): boolean {
@@ -438,7 +352,7 @@ export class NetV4 {
   }
 
   public static containIP(net: NetV4Like, ip: IpV4Like): boolean {
-    return castNetV4(net).containIP(castIpV4(ip));
+    return NetV4.from(net).containIP(IpV4.from(ip));
   }
 
   public containNet(net: NetV4): boolean {
@@ -447,7 +361,7 @@ export class NetV4 {
   }
 
   public static containNet(net1: NetV4Like, net2: NetV4Like): boolean {
-    return castNetV4(net1).containNet(castNetV4(net2));
+    return NetV4.from(net1).containNet(NetV4.from(net2));
   }
 
   public equal(net: NetV4): boolean {
@@ -455,7 +369,7 @@ export class NetV4 {
   }
 
   public static equal(net1: NetV4Like, net2: NetV4Like): boolean {
-    return castNetV4(net1).equal(castNetV4(net2));
+    return NetV4.from(net1).equal(NetV4.from(net2));
   }
 
   public forEachIP(func: (ip: IpV4) => void): void {
@@ -473,4 +387,72 @@ export class NetV4 {
       func(iter);
     }
   }
+}
+
+function parseIp(s1: string, s2: string, s3: string, s4: string): number {
+  const b1 = parseInt(s1);
+  const b2 = parseInt(s2);
+  const b3 = parseInt(s3);
+  const b4 = parseInt(s4);
+  if (b1 > 255 || b2 > 255 || b3 > 255 || b4 > 255) {
+    return -1;
+  }
+  return bs2he(b1, b2, b3, b4);
+}
+
+function parseMask(s1: string, s2: string, s3: string, s4: string): number {
+  const b1 = parseInt(s1);
+  const b2 = parseInt(s2);
+  const b3 = parseInt(s3);
+  const b4 = parseInt(s4);
+  if (b1 > 255 || b2 > 255 || b3 > 255 || b4 > 255) {
+    return -1;
+  }
+  const mask = bs2he(b1, b2, b3, b4);
+  const hostMask = 0xFFFFFFFF - mask;
+  if ((hostMask & (hostMask + 1)) !== 0) {
+    return -1;
+  }
+  return mask;
+}
+
+function parsePrefix(s: string): number {
+  const prefix = parseInt(s);
+  if (prefix < 0 || 32 < prefix) {
+    return -1;
+  }
+  return prefix;
+}
+
+function prefix2Mask(prefix: number): number {
+  if (prefix === 0) {
+    return 0;
+  }
+  const suffix = 32 - prefix;
+  const hostMask = ((1 << suffix) >>> 0) - 1;
+  return 0xFFFFFFFF - hostMask;
+}
+
+function mask2Prefix(mask: number): number {
+  if (mask === 0) {
+    return 0;
+  }
+  let count = 0;
+  const hostMask = 0xFFFFFFFF - mask;
+  while (hostMask >>> count > 0) {
+    count = count + 1;
+  }
+  return 32 - count;
+}
+
+function range2Mask(start: number, finish: number): number {
+  if (start > finish) {
+    return -1;
+  }
+  const hostMask = finish - start;
+  const mask = 0xFFFFFFFF - hostMask;
+  if ((hostMask & (hostMask + 1)) !== 0) {
+    return -1;
+  }
+  return mask;
 }

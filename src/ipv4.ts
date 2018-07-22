@@ -1,36 +1,41 @@
-import { IPV4Error } from './utilv4';
-import { bs2he, he2bs, be2bs, be2he, le2bs, le2he, he2be } from './endian';
+import { bs2he, be2he, le2he, he2bs, he2be, he2le } from './endian';
+
+export class IpV4Error extends Error { };
+
+export type IpV4Like = IpV4 | string | number | Array<number>;
 
 // 127.0.0.1
 const RE_IPV4 = /^\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*\.\s*(\d{1,3})\s*$/;
 
-export type IpV4Like = IpV4 | string | number | Array<number>;
-
-export function castIpV4(ip: IpV4Like): IpV4 {
-  if (typeof ip === 'string') {
-    return IpV4.fromString(ip);
-  } else if (typeof ip === 'number') {
-    return IpV4.fromInt(ip);
-  } else if (ip instanceof IpV4) {
-    return ip;
-  } else if (Array.isArray(ip)) {
-    return IpV4.fromArray(ip);
-  } else {
-    throw new IPV4Error();
-  }
-}
-
 export class IpV4 {
-  private _b1: number = 0;
-  private _b2: number = 0;
-  private _b3: number = 0;
-  private _b4: number = 0;
   private _int: number = 0;
+
+  public static from(like: IpV4Like): IpV4 {
+    const ip = IpV4.try(like);
+    if (!ip) {
+      throw new IpV4Error();
+    }
+    return ip;
+  }
+
+  public static try(like: IpV4Like): IpV4 | null {
+    if (like instanceof IpV4) {
+      return like;
+    } else if (typeof like === 'number') {
+      return IpV4.fromInt(like);
+    } else if (typeof like === 'string') {
+      return IpV4.fromString(like);
+    } else if (Array.isArray(like)) {
+      return IpV4.fromArray(like);
+    } else {
+      return null;
+    }
+  }
 
   public static fromString(str: string): IpV4 {
     const ip = IpV4.tryString(str);
     if (!ip) {
-      throw new IPV4Error();
+      throw new IpV4Error();
     }
     return ip;
   }
@@ -40,22 +45,22 @@ export class IpV4 {
     if (!match) {
       return null;
     }
-    const ip = new IpV4();
-    ip._b1 = parseInt(match[1]);
-    ip._b2 = parseInt(match[2]);
-    ip._b3 = parseInt(match[3]);
-    ip._b4 = parseInt(match[4]);
-    if (ip._b1 > 255 || ip._b2 > 255 || ip._b3 > 255 || ip._b4 > 255) {
+    const b1 = parseInt(match[1]);
+    const b2 = parseInt(match[2]);
+    const b3 = parseInt(match[3]);
+    const b4 = parseInt(match[4]);
+    if (b1 > 255 || b2 > 255 || b3 > 255 || b4 > 255) {
       return null;
     }
-    ip._int = bs2he(ip._b1, ip._b2, ip._b3, ip._b4);
+    const ip = new IpV4();
+    ip._int = bs2he(b1, b2, b3, b4);
     return ip;
   }
 
   public static fromInt(int: number): IpV4 {
     const ip = IpV4.tryInt(int);
     if (!ip) {
-      throw new IPV4Error();
+      throw new IpV4Error();
     }
     return ip;
   }
@@ -66,11 +71,6 @@ export class IpV4 {
     }
     int = int >>> 0;
     const ip = new IpV4();
-    const bytes = he2bs(int);
-    ip._b1 = bytes[0];
-    ip._b2 = bytes[1];
-    ip._b3 = bytes[2];
-    ip._b4 = bytes[3];
     ip._int = int;
     return ip;
   }
@@ -78,7 +78,7 @@ export class IpV4 {
   public static fromIntBe(int: number): IpV4 {
     const ip = IpV4.tryIntBe(int);
     if (!ip) {
-      throw new IPV4Error();
+      throw new IpV4Error();
     }
     return ip;
   }
@@ -89,11 +89,6 @@ export class IpV4 {
     }
     int = int >>> 0;
     const ip = new IpV4();
-    const bytes = be2bs(int);
-    ip._b1 = bytes[0];
-    ip._b2 = bytes[1];
-    ip._b3 = bytes[2];
-    ip._b4 = bytes[3];
     ip._int = be2he(int);
     return ip;
   }
@@ -101,7 +96,7 @@ export class IpV4 {
   public static fromIntLe(int: number): IpV4 {
     const ip = IpV4.tryIntLe(int);
     if (!ip) {
-      throw new IPV4Error();
+      throw new IpV4Error();
     }
     return ip;
   }
@@ -112,11 +107,6 @@ export class IpV4 {
     }
     int = int >>> 0;
     const ip = new IpV4();
-    const bytes = le2bs(int);
-    ip._b1 = bytes[0];
-    ip._b2 = bytes[1];
-    ip._b3 = bytes[2];
-    ip._b4 = bytes[3];
     ip._int = le2he(int);
     return ip;
   }
@@ -124,7 +114,7 @@ export class IpV4 {
   public static fromBytes(b1: number, b2: number, b3: number, b4: number): IpV4 {
     const ip = IpV4.tryBytes(b1, b2, b3, b4);
     if (!ip) {
-      throw new IPV4Error();
+      throw new IpV4Error();
     }
     return ip;
   }
@@ -139,24 +129,21 @@ export class IpV4 {
       return null;
     }
     const ip = new IpV4();
-    ip._b1 = b1;
-    ip._b2 = b2;
-    ip._b3 = b3;
-    ip._b4 = b4;
     ip._int = bs2he(b1, b2, b3, b4);
     return ip;
   }
 
-  public static fromArray(array: Array<number>): IpV4 {
-    return IpV4.fromBytes(array[0], array[1], array[2], array[3]);
+  public static fromArray(arr: Array<number>): IpV4 {
+    return IpV4.fromBytes(arr[0], arr[1], arr[2], arr[3]);
   }
 
-  public static tryArray(array: Array<number>): IpV4 | null {
-    return IpV4.tryBytes(array[0], array[1], array[2], array[3]);
+  public static tryArray(arr: Array<number>): IpV4 | null {
+    return IpV4.tryBytes(arr[0], arr[1], arr[2], arr[3]);
   }
 
   public toString(): string {
-    return `${this._b1}.${this._b2}.${this._b3}.${this._b4}`;
+    const bs = he2bs(this._int);
+    return `${bs[0]}.${bs[1]}.${bs[2]}.${bs[3]}`;
   }
 
   public toInt(): number {
@@ -168,11 +155,12 @@ export class IpV4 {
   }
 
   public toIntLe(): number {
-    return le2he(this._int);
+    return he2le(this._int);
   }
 
   public toArray(): Array<number> {
-    return [this._b1, this._b2, this._b3, this._b4];
+    const bs = he2bs(this._int);
+    return Array.from(bs);
   }
 
   public equal(ip: IpV4): boolean {
@@ -180,7 +168,7 @@ export class IpV4 {
   }
 
   public static equal(ip1: IpV4Like, ip2: IpV4Like): boolean {
-    return castIpV4(ip1).equal(castIpV4(ip2));
+    return IpV4.from(ip1).equal(IpV4.from(ip2));
   }
 
   public isUnspecified(): boolean {
@@ -188,7 +176,7 @@ export class IpV4 {
   }
 
   public static isUnspecified(ip: IpV4Like): boolean {
-    return castIpV4(ip).isUnspecified();
+    return IpV4.from(ip).isUnspecified();
   }
 
   public isLoopback(): boolean {
@@ -196,7 +184,7 @@ export class IpV4 {
   }
 
   public static isLoopback(ip: IpV4Like): boolean {
-    return castIpV4(ip).isLoopback();
+    return IpV4.from(ip).isLoopback();
   }
 
   public isPrivate(): boolean {
@@ -206,7 +194,7 @@ export class IpV4 {
   }
 
   public static isPrivate(ip: IpV4Like): boolean {
-    return castIpV4(ip).isPrivate();
+    return IpV4.from(ip).isPrivate();
   }
 
   public isLinkLocal(): boolean {
@@ -214,7 +202,7 @@ export class IpV4 {
   }
 
   public static isLinkLocal(ip: IpV4Like): boolean {
-    return castIpV4(ip).isLinkLocal();
+    return IpV4.from(ip).isLinkLocal();
   }
 
   public isMulticast(): boolean {
@@ -222,7 +210,7 @@ export class IpV4 {
   }
 
   public static isMulticast(ip: IpV4Like): boolean {
-    return castIpV4(ip).isMulticast();
+    return IpV4.from(ip).isMulticast();
   }
 
   public isBroadcast(): boolean {
@@ -230,7 +218,7 @@ export class IpV4 {
   }
 
   public static isBroadcast(ip: IpV4Like): boolean {
-    return castIpV4(ip).isBroadcast();
+    return IpV4.from(ip).isBroadcast();
   }
 
   public isDocumentation(): boolean {
@@ -240,7 +228,7 @@ export class IpV4 {
   }
 
   public static isDocumentation(ip: IpV4Like): boolean {
-    return castIpV4(ip).isDocumentation();
+    return IpV4.from(ip).isDocumentation();
   }
 
   public isGlobal(): boolean {
@@ -253,6 +241,6 @@ export class IpV4 {
   }
 
   public static isGlobal(ip: IpV4Like): boolean {
-    return castIpV4(ip).isGlobal();
+    return IpV4.from(ip).isGlobal();
   }
 }

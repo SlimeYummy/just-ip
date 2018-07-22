@@ -1,6 +1,6 @@
 import { IPV6Error } from "./utilv6";
 import * as u6 from "./utilv6";
-import { is2ss, ss2is } from "./endian";
+import { is2ss, ss2he } from "./endian";
 
 export class IpV6 {
   private _i1: number = 0;
@@ -8,9 +8,7 @@ export class IpV6 {
   private _i3: number = 0;
   private _i4: number = 0;
 
-  public static fromString(
-    str: string
-  ): IpV6 {
+  public static fromString(str: string): IpV6 {
     const ip = IpV6.tryString(str);
     if (!ip) {
       throw new IPV6Error();
@@ -18,9 +16,7 @@ export class IpV6 {
     return ip;
   }
 
-  public static tryString(
-    str: string
-  ): IpV6 | null {
+  public static tryString(str: string): IpV6 | null {
     const strArray = str.split(':');
     const uint32Array = u6.parseSplit(strArray);
     if (!uint32Array) {
@@ -73,7 +69,7 @@ export class IpV6 {
     ) {
       return null;
     }
-    const uint32Array = ss2is(s1, s2, s3, s4, s5, s6, s7, s8);
+    const uint32Array = ss2he(s1, s2, s3, s4, s5, s6, s7, s8);
     const ip = new IpV6();
     ip._i1 = uint32Array[0];
     ip._i2 = uint32Array[1];

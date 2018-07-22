@@ -1,5 +1,4 @@
-import { ss2is, is2ss } from "./endian";
-import { toStringV4 } from "./utilv4";
+import { ss2he, is2ss, he2bs } from "./endian";
 
 export class IPV6Error extends Error { };
 export class NetV6Error extends Error { };
@@ -87,7 +86,7 @@ export function parseSplit(
     }
   }
 
-  const uint32Array = ss2is(
+  const uint32Array = ss2he(
     numArray[0], numArray[1], numArray[2], numArray[3],
     numArray[4], numArray[5], numArray[6], numArray[7]
   );
@@ -135,8 +134,8 @@ export function toStringMapped(
   const str4 = uint16Array[3].toString(16);
   const str5 = uint16Array[4].toString(16);
   const str6 = uint16Array[5].toString(16);
-  const strIp = toStringV4(i4);
-  const str = `${str1}:${str2}:${str3}:${str4}:${str5}:${str6}:${strIp}`;
+  const v4 = he2bs(i4);
+  const str = `${str1}:${str2}:${str3}:${str4}:${str5}:${str6}:${v4[0]}.${v4[1]}.${v4[2]}.${v4[3]}`;
   return str;
 }
 
@@ -201,6 +200,7 @@ export function toStringShortMapped(
     throw new IPV6Error();
   }
   const strArray = _toStringShort(i1, i2, i3, i4, 6);
-  strArray.push(toStringV4(i4));
+  const v4 = he2bs(i4);
+  strArray.push(`${v4[0]}.${v4[1]}.${v4[2]}.${v4[3]}`);
   return strArray.join(':');
 }
